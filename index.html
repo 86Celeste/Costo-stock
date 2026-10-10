@@ -70,19 +70,20 @@
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 py-2.5 sm:px-6 shadow-sm">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
-        <!-- Brand Logo Icon Container -->
-        <div id="brandLogoContainer" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 border border-white/20">
-          <i data-lucide="calculator" class="w-5 h-5"></i>
+        <!-- Brand Logo Icon Container / Custom Logo -->
+        <div id="brandLogoContainer" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 border border-white/20">
+          <img id="headerBrandLogoImg" class="w-full h-full object-cover hidden" alt="Logo">
+          <i id="headerBrandLogoDefaultIcon" data-lucide="calculator" class="w-5 h-5"></i>
         </div>
         <div>
           <div class="flex items-center gap-1.5">
-            <h1 class="text-sm sm:text-base font-bold leading-tight text-slate-900 tracking-tight">EmprendeCostos</h1>
+            <h1 id="headerBrandTitle" class="text-sm sm:text-base font-bold leading-tight text-slate-900 tracking-tight">EmprendeCostos</h1>
             <span id="syncIndicator" class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
               <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
               <span>Sin cuenta</span>
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Precios, stock, corte textil y base de datos</p>
+          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Precios, catálogo, presupuestos y stock</p>
         </div>
       </div>
 
@@ -104,13 +105,13 @@
         <!-- Install PWA Button -->
         <button id="btnHeaderInstall" onclick="handleInstallClick()" title="Descargar e instalar en celular o PC" class="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition-all active:scale-95">
           <i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5"></i>
-          <span>Descargar App</span>
+          <span class="hidden sm:inline">Descargar App</span>
         </button>
 
         <button onclick="openShareModal()" title="Compartir o instalar" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
           <i data-lucide="share-2" class="w-4 h-4"></i>
         </button>
-        <button onclick="openBackupModal()" title="Ajustes y Respaldo" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+        <button onclick="openBackupModal()" title="Ajustes, Logo y Respaldo" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
           <i data-lucide="settings" class="w-5 h-5"></i>
         </button>
       </div>
@@ -322,9 +323,12 @@
       <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
         <div>
           <h2 class="text-lg font-bold text-slate-900">Stock de Productos Terminados</h2>
-          <p class="text-xs text-slate-500">Controla unidades fabricadas, precios de venta y rentabilidad.</p>
+          <p class="text-xs text-slate-500">Controla unidades fabricadas, precios de venta, fotos y recetas.</p>
         </div>
         <div class="flex gap-2">
+          <button onclick="switchTab('catalog')" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
+            <i data-lucide="grid" class="w-4 h-4"></i> Ver en Catálogo
+          </button>
           <button onclick="openProductModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
             <i data-lucide="plus" class="w-4 h-4"></i> Nuevo producto
           </button>
@@ -340,6 +344,65 @@
       <!-- Product Cards Container -->
       <div id="productsListContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <!-- Products populated via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2.5: CATÁLOGO DE PRODUCTOS (NUEVO) -->
+    <section id="view-catalog" class="tab-view hidden space-y-4">
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-emerald-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm mb-1">
+            Vitrina Comercial & Ventas
+          </span>
+          <h2 class="text-lg sm:text-xl font-bold" id="catalogStoreTitle">Catálogo de Productos</h2>
+          <p class="text-xs sm:text-sm text-emerald-100">Comparte tu lista de productos con fotos y precios directamente por WhatsApp.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="shareEntireCatalogWhatsApp()" class="text-xs bg-white text-emerald-800 hover:bg-emerald-50 active:scale-95 font-bold px-3 py-2 rounded-xl shadow transition-all flex items-center gap-1.5">
+            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+            Enviar Catálogo por WhatsApp
+          </button>
+          <button onclick="openNewQuotationModal()" class="text-xs bg-emerald-800/60 hover:bg-emerald-800 active:scale-95 text-white font-semibold px-3 py-2 rounded-xl border border-white/20 transition-all flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            Crear Presupuesto
+          </button>
+        </div>
+      </div>
+
+      <!-- Search in catalog -->
+      <div class="flex items-center gap-2">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+          <input type="text" id="searchCatalogInput" oninput="renderCatalogView()" placeholder="Buscar en el catálogo por nombre..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <button onclick="openProductModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-3 py-2.5 rounded-xl shadow-sm flex items-center gap-1.5 shrink-0">
+          <i data-lucide="plus" class="w-4 h-4"></i> Cargar Foto / Producto
+        </button>
+      </div>
+
+      <!-- Catalog Cards Grid -->
+      <div id="catalogGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 2.8: GENERADOR DE PRESUPUESTOS (NUEVO) -->
+    <section id="view-quotations" class="tab-view hidden space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Presupuestos y Cotizaciones</h2>
+          <p class="text-xs text-slate-500">Crea presupuestos formales con el logo de tu marca para enviar a clientes.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="openNewQuotationModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> Nuevo Presupuesto
+          </button>
+        </div>
+      </div>
+
+      <!-- Quotations History List -->
+      <div id="quotationsListContainer" class="space-y-3">
+        <!-- Dynamically rendered -->
       </div>
     </section>
 
@@ -412,22 +475,26 @@
 
   <!-- BOTTOM NAVIGATION -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-2">
-    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+    <div class="max-w-lg mx-auto grid grid-cols-5 gap-1">
       <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-indigo-600 font-semibold transition-all">
-        <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Calculadora</span>
+        <i data-lucide="calculator" class="w-4 h-4 sm:w-5 sm:h-5 mb-0.5"></i>
+        <span class="text-[9px] sm:text-[10px]">Costos</span>
+      </button>
+      <button onclick="switchTab('catalog')" id="nav-btn-catalog" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
+        <i data-lucide="store" class="w-4 h-4 sm:w-5 sm:h-5 mb-0.5"></i>
+        <span class="text-[9px] sm:text-[10px]">Catálogo</span>
+      </button>
+      <button onclick="switchTab('quotations')" id="nav-btn-quotations" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
+        <i data-lucide="file-check" class="w-4 h-4 sm:w-5 sm:h-5 mb-0.5"></i>
+        <span class="text-[9px] sm:text-[10px]">Presupuestos</span>
       </button>
       <button onclick="switchTab('products')" id="nav-btn-products" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
-        <i data-lucide="package" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Productos</span>
+        <i data-lucide="package" class="w-4 h-4 sm:w-5 sm:h-5 mb-0.5"></i>
+        <span class="text-[9px] sm:text-[10px]">Stock</span>
       </button>
       <button onclick="switchTab('materials')" id="nav-btn-materials" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
-        <i data-lucide="boxes" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Insumos</span>
-      </button>
-      <button onclick="switchTab('metrics')" id="nav-btn-metrics" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
-        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Métricas</span>
+        <i data-lucide="boxes" class="w-4 h-4 sm:w-5 sm:h-5 mb-0.5"></i>
+        <span class="text-[9px] sm:text-[10px]">Insumos</span>
       </button>
     </div>
   </nav>
@@ -782,6 +849,74 @@
               <span id="prodPreviewMargin" class="text-xs font-bold text-emerald-600">0%</span>
             </div>
           </div>
+  <!-- MODAL: Crear/Editar Producto Terminado Manualmente (con Foto y Descripción) -->
+  <div id="modalProduct" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 id="modalProductTitle" class="font-bold text-base text-slate-900">Producto Terminado</h3>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="prodId">
+      <input type="hidden" id="prodPhotoData">
+
+      <div class="space-y-3">
+        <!-- Photo Uploader Section -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Foto del Producto (para Catálogo)</label>
+          <div class="flex items-center gap-3">
+            <div id="prodPhotoPreviewBox" class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 overflow-hidden shrink-0 relative group">
+              <img id="prodPhotoPreviewImg" class="w-full h-full object-cover hidden" alt="Vista previa">
+              <i id="prodPhotoPlaceholderIcon" data-lucide="image" class="w-6 h-6"></i>
+              <button type="button" id="btnRemoveProdPhoto" onclick="removeProductPhoto()" class="hidden absolute top-1 right-1 bg-rose-600 text-white rounded-full p-0.5 shadow">
+                <i data-lucide="x" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <div class="space-y-1.5 flex-1">
+              <label class="inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200 cursor-pointer transition-colors">
+                <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                <span>Subir foto / Sacar foto</span>
+                <input type="file" accept="image/*" onchange="handleProductPhotoUpload(event)" class="hidden">
+              </label>
+              <p class="text-[10px] text-slate-400 leading-tight">Optimizado automáticamente para enviar por WhatsApp sin ocupar espacio.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Producto *</label>
+          <input type="text" id="prodName" placeholder="Ej. Vela Aromática Vainilla 200g, Cuadro A4..." class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción para el Catálogo (opcional)</label>
+          <textarea id="prodDescription" rows="2" placeholder="Detalles, materiales, aroma o medidas para que tus clientes vean en el catálogo..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Costo Unitario ($) *</label>
+            <input type="number" id="prodCost" value="0" min="0" step="any" oninput="previewProductMargin()" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Precio Venta ($) *</label>
+            <input type="number" id="prodPrice" value="0" min="0" step="any" oninput="previewProductMargin()" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Stock Actual (unidades)</label>
+            <input type="number" id="prodStock" value="10" min="0" step="1" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="flex flex-col justify-end">
+            <div class="bg-slate-100 rounded-xl p-2 text-center">
+              <span class="block text-[10px] text-slate-500">Margen estimado:</span>
+              <span id="prodPreviewMargin" class="text-xs font-bold text-emerald-600">0%</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -796,83 +931,203 @@
     </div>
   </div>
 
-  <!-- MODAL: Fabricar / Producir Lote -->
-  <div id="modalProduce" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="hammer" class="w-5 h-5 text-indigo-600"></i> Producir Lote
-        </h3>
-        <button onclick="closeProduceModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+  <!-- MODAL: CREAR/EDITAR PRESUPUESTO (NUEVO) -->
+  <div id="modalQuotation" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900" id="quotationModalTitle">Nuevo Presupuesto</h3>
+            <p class="text-[11px] text-slate-500">Cotización formal con el logo de tu marca</p>
+          </div>
+        </div>
+        <button onclick="closeQuotationModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
-      <div>
-        <p class="text-xs text-slate-600">
-          ¿Cuántas unidades de <strong id="produceProductName" class="text-slate-900 font-bold"></strong> deseas fabricar?
-        </p>
-        <div class="mt-3">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de unidades a fabricar</label>
-          <input type="number" id="produceBatchCount" value="5" min="1" step="1" oninput="updateProduceRecipePreview()" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+      <input type="hidden" id="quoteId">
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Cliente *</label>
+          <input type="text" id="quoteClientName" placeholder="Ej. Mariana López" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Teléfono / WhatsApp</label>
+          <input type="text" id="quoteClientPhone" placeholder="Ej. +54 9 11 5555-5555" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Vigencia (días)</label>
+          <input type="number" id="quoteValidityDays" value="15" min="1" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
       </div>
 
-      <div id="produceRecipeDetails" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
-        <!-- Insumos to be deducted -->
+      <!-- Quotation Items Table -->
+      <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-800">Ítems y Productos del Presupuesto</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="addQuoteItemFromCatalogPrompt()" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1 transition-colors">
+              <i data-lucide="package-plus" class="w-3.5 h-3.5"></i> Del Catálogo
+            </button>
+            <button type="button" onclick="addCustomQuoteItemRow()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-1 rounded-lg border border-indigo-200 flex items-center gap-1 transition-colors">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Ítem Personalizado
+            </button>
+          </div>
+        </div>
+
+        <div id="quoteItemsList" class="space-y-2 pt-1">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+          <span class="font-bold text-slate-600">Total Presupuestado:</span>
+          <span id="quoteTotalDisplay" class="text-base font-extrabold text-slate-900">$0.00</span>
+        </div>
       </div>
 
-      <div class="flex gap-2 pt-2">
-        <button onclick="closeProduceModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Notas, Condiciones de Pago o Entrega</label>
+        <textarea id="quoteNotes" rows="2" placeholder="Ej. Seña del 50% al encargar. Plazo de elaboración: 5 días hábiles. Envíos a coordinar..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+      </div>
+
+      <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+        <button onclick="closeQuotationModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
           Cancelar
         </button>
-        <button onclick="executeProduction()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-100 transition-colors flex items-center justify-center gap-1.5">
-          <i data-lucide="check-circle" class="w-4 h-4"></i> Fabricar y descontar
+        <button onclick="saveAndPreviewQuotation()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md shadow-indigo-100 text-xs flex items-center justify-center gap-1.5 transition-all">
+          <i data-lucide="printer" class="w-4 h-4"></i> Guardar y Ver Presupuesto con Logo
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Registrar Venta Rápida -->
-  <div id="modalSale" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+  <!-- MODAL: VISTA PREVIA FORMAL DE PRESUPUESTO (PARA IMPRIMIR / PDF / WHATSAPP) -->
+  <div id="modalPrintQuotation" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl overflow-y-auto max-h-[95vh] space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Registrar Venta
-        </h3>
-        <button onclick="closeSaleModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-      <div>
-        <p class="text-xs text-slate-600">
-          Venta de: <strong id="saleProductName" class="text-slate-900 font-bold"></strong>
-        </p>
-        <div class="mt-3">
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Unidades vendidas</label>
-          <input type="number" id="saleUnitsCount" value="1" min="1" step="1" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Documento de Presupuesto</span>
+        <div class="flex items-center gap-2">
+          <button onclick="printQuotationDocument()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5 transition-all">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir / Guardar PDF
+          </button>
+          <button onclick="shareActiveQuoteWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5 transition-all">
+            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Enviar por WhatsApp
+          </button>
+          <button onclick="closePrintQuotationModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
         </div>
       </div>
-      <div class="flex gap-2 pt-2">
-        <button onclick="closeSaleModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
-          Cancelar
-        </button>
-        <button onclick="confirmSale()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-100 transition-colors">
-          Confirmar Venta
-        </button>
+
+      <!-- Printable Sheet Body -->
+      <div id="printableQuoteSheet" class="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl space-y-4 text-slate-800">
+        <!-- Brand Header with Logo -->
+        <div class="flex items-start justify-between border-b border-slate-200 pb-4 gap-4">
+          <div class="flex items-center gap-3">
+            <div id="quoteDocLogoContainer" class="w-14 h-14 rounded-xl overflow-hidden bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-sm">
+              <img id="quoteDocLogoImg" class="w-full h-full object-cover hidden" alt="Logo">
+              <span id="quoteDocLogoFallback">E</span>
+            </div>
+            <div>
+              <h2 id="quoteDocBrandName" class="text-base sm:text-lg font-black text-slate-900 leading-tight">Mi Emprendimiento</h2>
+              <p id="quoteDocBrandSub" class="text-xs text-slate-500">Presupuesto de Productos & Servicios</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block bg-slate-100 text-slate-800 font-extrabold text-xs px-2.5 py-1 rounded-md">PRESUPUESTO</span>
+            <p class="text-[11px] text-slate-500 mt-1" id="quoteDocNumber">N° 0001</p>
+            <p class="text-[11px] text-slate-500" id="quoteDocDate">Fecha: 10/10/2026</p>
+          </div>
+        </div>
+
+        <!-- Client Info -->
+        <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl text-xs">
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold uppercase block">Preparado para:</span>
+            <strong id="quoteDocClient" class="text-slate-900 text-sm">Cliente</strong>
+            <p id="quoteDocPhone" class="text-slate-600 text-[11px]">-</p>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 font-bold uppercase block">Validez:</span>
+            <span id="quoteDocValidity" class="font-semibold text-slate-700">15 días</span>
+          </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-500 font-bold">
+                <th class="py-2">Ítem / Detalle</th>
+                <th class="py-2 text-center w-16">Cant.</th>
+                <th class="py-2 text-right w-24">Precio Unit.</th>
+                <th class="py-2 text-right w-24">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="quoteDocItemsBody" class="divide-y divide-slate-100">
+              <!-- Items populated by JS -->
+            </tbody>
+            <tfoot>
+              <tr class="border-t-2 border-slate-800 text-slate-900 font-bold">
+                <td colspan="3" class="pt-3 text-right text-sm">TOTAL:</td>
+                <td id="quoteDocTotal" class="pt-3 text-right text-base text-indigo-700 font-black">$0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Notes / Terms -->
+        <div id="quoteDocNotesBox" class="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-slate-700 space-y-1">
+          <strong class="text-indigo-900 block text-[11px] uppercase tracking-wider">Términos y Condiciones:</strong>
+          <p id="quoteDocNotesText" class="text-[11px] leading-relaxed text-slate-600">Presupuesto sujeto a disponibilidad de stock.</p>
+        </div>
+
+        <div class="pt-2 text-center text-[10px] text-slate-400 border-t border-slate-100">
+          Documento generado con EmprendeCostos • Presupuesto no válido como factura fiscal
+        </div>
       </div>
     </div>
   </div>
-
-  <!-- MODAL: Respaldo, GitHub & Vercel -->
+  <!-- MODAL: Respaldo, GitHub & Vercel (con carga de Logo) -->
   <div id="modalBackup" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="settings" class="w-4 h-4 text-indigo-600"></i> Ajustes & Respaldo
+          <i data-lucide="settings" class="w-4 h-4 text-indigo-600"></i> Ajustes, Logo & Respaldo
         </h3>
         <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
+      </div>
+
+      <!-- Business Branding / Logo Customization (NUEVO) -->
+      <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-2.5">
+        <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-600"></i> Logo y Nombre de tu Emprendimiento
+        </span>
+        <div class="flex items-center gap-3">
+          <div id="settingsLogoPreviewBox" class="w-14 h-14 rounded-xl border-2 border-dashed border-indigo-300 bg-white flex items-center justify-center overflow-hidden shrink-0">
+            <img id="settingsLogoPreviewImg" class="w-full h-full object-cover hidden" alt="Logo">
+            <i id="settingsLogoPlaceholderIcon" data-lucide="image" class="w-6 h-6 text-indigo-400"></i>
+          </div>
+          <div class="flex-1 space-y-1">
+            <label class="inline-flex items-center gap-1 text-xs font-semibold bg-white hover:bg-slate-50 text-indigo-700 px-2.5 py-1.5 rounded-lg border border-indigo-200 cursor-pointer shadow-sm">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Cargar Logo de la Marca</span>
+              <input type="file" accept="image/*" onchange="handleBrandLogoUpload(event)" class="hidden">
+            </label>
+            <p class="text-[10px] text-slate-500 leading-tight">Aparecerá en el encabezado y en todos los presupuestos formales.</p>
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-700 mb-0.5">Nombre comercial</label>
+          <input type="text" id="settingsBrandNameInput" oninput="updateBrandName(this.value)" placeholder="Ej. Mi Taller Creativo" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
       </div>
 
       <div class="space-y-3 text-xs">
@@ -926,112 +1181,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Instalar en Celular / Descargar App -->
-  <div id="modalShare" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm" id="modalLogoIcon">
-            <i data-lucide="calculator" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-base text-slate-900">Descargar como Aplicación</h3>
-            <p class="text-[11px] text-slate-500">Queda con ícono propio en tu pantalla de inicio</p>
-          </div>
-        </div>
-        <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Quick Platform Tabs -->
-      <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600">
-        <button id="tab-btn-android" onclick="selectInstallPlatform('android')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
-          Android
-        </button>
-        <button id="tab-btn-ios" onclick="selectInstallPlatform('ios')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
-          iPhone / iPad
-        </button>
-        <button id="tab-btn-pc" onclick="selectInstallPlatform('pc')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
-          PC / Mac
-        </button>
-      </div>
-
-      <!-- Step Instructions -->
-      <div class="space-y-3 text-xs">
-        <div id="install-guide-android" class="space-y-2.5">
-          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-[11px] leading-relaxed flex items-center justify-between">
-            <span>Presiona el botón de instalación directa a continuación:</span>
-          </div>
-          <button id="btnTriggerAndroidNative" onclick="triggerNativeInstallPrompt()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-200 active:scale-95 text-xs">
-            <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Instalar Aplicación Ahora
-          </button>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
-            <div>
-              <p class="font-bold text-slate-800">O desde el menú de Chrome:</p>
-              <p class="text-slate-600 mt-0.5">Toca los <strong>tres puntos (⋮)</strong> en la esquina superior derecha y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="install-guide-ios" class="space-y-2.5 hidden">
-          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
-            <strong>En iPhone o iPad:</strong> Abre este link en <strong>Safari</strong> y sigue estos 2 pasos:
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
-            <div>
-              <p class="font-bold text-slate-800">Toca el botón Compartir de Safari</p>
-              <p class="text-slate-600 mt-0.5">Es el ícono cuadrado con una flecha hacia arriba en la barra de navegación.</p>
-            </div>
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
-            <div>
-              <p class="font-bold text-slate-800">Selecciona "Agregar al inicio" (+)</p>
-              <p class="text-slate-600 mt-0.5">La app se agregará a tu pantalla principal con su logo y sin marcos de navegador.</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="install-guide-pc" class="space-y-2.5 hidden">
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
-            <div>
-              <p class="font-bold text-slate-800">En Chrome, Edge o Brave</p>
-              <p class="text-slate-600 mt-0.5">Haz clic en el ícono de descarga o pantalla que aparece a la derecha de la barra de direcciones.</p>
-            </div>
-          </div>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
-            <div>
-              <p class="font-bold text-slate-800">Haz clic en "Instalar"</p>
-              <p class="text-slate-600 mt-0.5">Quedará instalada en tu barra de tareas o menú de inicio como software de escritorio.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-3 border-t border-slate-100">
-          <p class="text-slate-700 font-semibold mb-2 text-xs">Compartir enlace directo:</p>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="shareViaWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-              <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
-            </button>
-            <button onclick="copyAppUrl()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-              <i data-lucide="copy" class="w-4 h-4"></i> Copiar Link
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast notifications container -->
-  <div id="toastContainer" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-sm">
-    <!-- Dynamic toasts -->
-  </div>
-
   <!-- FIREBASE & CLOUD DATABASE & PWA ENGINE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1050,20 +1199,27 @@
 
     let appState = {
       currency: '$',
+      brandName: 'Mi Emprendimiento',
+      brandLogo: '', // base64 data URI
       rawMaterials: [],
       products: [],
+      quotations: [],
       calculatorRecipe: []
     };
 
-    let currentUserAccount = null; // { username, displayName, docId }
+    let currentUserAccount = null;
     let activeProducingProduct = null;
     let activeSaleProduct = null;
+    let activeQuotationItems = []; // [{ name, quantity, unitPrice }]
+    let activePreviewQuote = null;
     let deferredInstallPrompt = null;
     let cloudSaveTimeout = null;
 
     /* Demo data for onboarding */
     const sampleSeedData = {
       currency: '$',
+      brandName: 'Velas & Deco Luz',
+      brandLogo: '',
       rawMaterials: [
         { id: 'mat_1', name: 'Cera de Soja Premium', unit: 'g', stock: 5000, purchasedQty: 5000, purchasedPrice: 15000, unitCost: 3.0, minStock: 1000 },
         { id: 'mat_2', name: 'Esencia Aromática Vainilla', unit: 'ml', stock: 250, purchasedQty: 250, purchasedPrice: 6000, unitCost: 24.0, minStock: 50 },
@@ -1100,6 +1256,8 @@
         {
           id: 'prod_1',
           name: 'Vela Aromática Soja Vainilla 200g',
+          description: 'Vela ecológica 100% cera de soja perfumada con esencia pura en frasco ámbar reutilizable.',
+          photo: '',
           unitCost: 1850,
           suggestedPrice: 4200,
           stock: 12,
@@ -1121,6 +1279,8 @@
         {
           id: 'prod_2',
           name: 'Funda Almohadón Tusor 40x40 cm',
+          description: 'Confeccionada en puro algodón tusor teñido artesanal con solapa trasera reforzada.',
+          photo: '',
           unitCost: 2600,
           suggestedPrice: 6500,
           stock: 8,
@@ -1137,6 +1297,22 @@
           ]
         }
       ],
+      quotations: [
+        {
+          id: 'quote_1',
+          number: '0001',
+          date: '2026-10-10',
+          clientName: 'María Eugenia Rossi',
+          clientPhone: '+54 9 11 4455-6677',
+          validityDays: 15,
+          notes: 'Incluye packaging ecológico para regalo y cinta hilera. 50% anticipo al confirmar.',
+          items: [
+            { name: 'Vela Aromática Soja Vainilla 200g', quantity: 4, unitPrice: 4200 },
+            { name: 'Funda Almohadón Tusor 40x40 cm', quantity: 2, unitPrice: 6500 }
+          ],
+          total: 29800
+        }
+      ],
       calculatorRecipe: [
         {
           materialId: 'mat_6',
@@ -1149,66 +1325,598 @@
         }
       ]
     };
+    /* Helper to compress images for lightweight Firestore/Local storage */
+    function compressImageFile(file, maxWidth, maxHeight, quality, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          let width = img.width;
+          let height = img.height;
 
-    /* --- BRAND LOGO GENERATOR & PWA ASSETS --- */
-    function createBrandedLogoSvg() {
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-        <defs>
-          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#4f46e5" />
-            <stop offset="50%" stop-color="#4338ca" />
-            <stop offset="100%" stop-color="#312e81" />
-          </linearGradient>
-          <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#10b981" />
-            <stop offset="100%" stop-color="#059669" />
-          </linearGradient>
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#1e1b4b" flood-opacity="0.45" />
-          </filter>
-        </defs>
-        <!-- Background squircle -->
-        <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
-        <!-- App Icon Graphic (Calculator + Stock boxes) -->
-        <g filter="url(#shadow)">
-          <!-- Main calculator body -->
-          <rect x="110" y="80" width="292" height="352" rx="42" fill="#ffffff" />
-          <!-- Screen -->
-          <rect x="142" y="116" width="228" height="74" rx="20" fill="url(#screenGrad)" />
-          <!-- Screen text line / display -->
-          <circle cx="170" cy="153" r="8" fill="#ffffff" opacity="0.9"/>
-          <rect x="195" y="146" width="85" height="14" rx="7" fill="#ffffff" opacity="0.9"/>
-          <text x="345" y="162" font-family="sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="end">$%</text>
-          
-          <!-- Keypad buttons -->
-          <!-- Row 1 -->
-          <rect x="142" y="214" width="62" height="46" rx="14" fill="#e0e7ff" />
-          <text x="173" y="244" font-family="sans-serif" font-weight="800" font-size="22" fill="#4338ca" text-anchor="middle">+</text>
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
 
-          <rect x="225" y="214" width="62" height="46" rx="14" fill="#e0e7ff" />
-          <text x="256" y="244" font-family="sans-serif" font-weight="800" font-size="22" fill="#4338ca" text-anchor="middle">−</text>
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
 
-          <rect x="308" y="214" width="62" height="46" rx="14" fill="#e0e7ff" />
-          <text x="339" y="244" font-family="sans-serif" font-weight="800" font-size="22" fill="#4338ca" text-anchor="middle">×</text>
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          callback(compressedDataUrl);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
 
-          <!-- Row 2 -->
-          <rect x="142" y="278" width="62" height="46" rx="14" fill="#f1f5f9" />
-          <text x="173" y="308" font-family="sans-serif" font-weight="700" font-size="20" fill="#334155" text-anchor="middle">1</text>
+    /* Brand Logo Handler */
+    window.handleBrandLogoUpload = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-          <rect x="225" y="278" width="62" height="46" rx="14" fill="#f1f5f9" />
-          <text x="256" y="308" font-family="sans-serif" font-weight="700" font-size="20" fill="#334155" text-anchor="middle">2</text>
+      compressImageFile(file, 300, 300, 0.85, (dataUrl) => {
+        appState.brandLogo = dataUrl;
+        saveState();
+        updateBrandDisplayUI();
+        showToast("¡Logo de tu emprendimiento guardado!", "success");
+      });
+    };
 
-          <rect x="308" y="278" width="62" height="46" rx="14" fill="#f1f5f9" />
-          <text x="339" y="308" font-family="sans-serif" font-weight="700" font-size="20" fill="#334155" text-anchor="middle">3</text>
+    window.updateBrandName = function(name) {
+      appState.brandName = name.trim() || 'Mi Emprendimiento';
+      saveState();
+      updateBrandDisplayUI();
+    };
 
-          <!-- Row 3 (Action button = "=") -->
-          <rect x="142" y="342" width="145" height="48" rx="14" fill="#4f46e5" />
-          <text x="214" y="374" font-family="sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">PRECIO</text>
+    function updateBrandDisplayUI() {
+      const brandName = appState.brandName || 'EmprendeCostos';
+      const headerTitle = document.getElementById('headerBrandTitle');
+      const catalogTitle = document.getElementById('catalogStoreTitle');
+      const settingsNameInput = document.getElementById('settingsBrandNameInput');
 
-          <rect x="308" y="342" width="62" height="48" rx="14" fill="#10b981" />
-          <text x="339" y="374" font-family="sans-serif" font-weight="900" font-size="24" fill="#ffffff" text-anchor="middle">=</text>
-        </g>
-      </svg>`;
+      if (headerTitle) headerTitle.textContent = brandName;
+      if (catalogTitle) catalogTitle.textContent = `Catálogo • ${brandName}`;
+      if (settingsNameInput && document.activeElement !== settingsNameInput) {
+        settingsNameInput.value = brandName;
+      }
+
+      // Header logo
+      const headerImg = document.getElementById('headerBrandLogoImg');
+      const headerIcon = document.getElementById('headerBrandLogoDefaultIcon');
+      if (appState.brandLogo) {
+        headerImg.src = appState.brandLogo;
+        headerImg.classList.remove('hidden');
+        headerIcon.classList.add('hidden');
+      } else {
+        headerImg.classList.add('hidden');
+        headerIcon.classList.remove('hidden');
+      }
+
+      // Settings preview
+      const settingsImg = document.getElementById('settingsLogoPreviewImg');
+      const settingsIcon = document.getElementById('settingsLogoPlaceholderIcon');
+      if (settingsImg && settingsIcon) {
+        if (appState.brandLogo) {
+          settingsImg.src = appState.brandLogo;
+          settingsImg.classList.remove('hidden');
+          settingsIcon.classList.add('hidden');
+        } else {
+          settingsImg.classList.add('hidden');
+          settingsIcon.classList.remove('hidden');
+        }
+      }
+    }
+
+    /* Product Photo Handlers */
+    window.handleProductPhotoUpload = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      compressImageFile(file, 600, 600, 0.8, (dataUrl) => {
+        document.getElementById('prodPhotoData').value = dataUrl;
+        const previewImg = document.getElementById('prodPhotoPreviewImg');
+        const icon = document.getElementById('prodPhotoPlaceholderIcon');
+        const removeBtn = document.getElementById('btnRemoveProdPhoto');
+
+        previewImg.src = dataUrl;
+        previewImg.classList.remove('hidden');
+        icon.classList.add('hidden');
+        removeBtn.classList.remove('hidden');
+      });
+    };
+
+    window.removeProductPhoto = function() {
+      document.getElementById('prodPhotoData').value = '';
+      const previewImg = document.getElementById('prodPhotoPreviewImg');
+      const icon = document.getElementById('prodPhotoPlaceholderIcon');
+      const removeBtn = document.getElementById('btnRemoveProdPhoto');
+
+      previewImg.src = '';
+      previewImg.classList.add('hidden');
+      icon.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+    };
+
+    /* TAB: Public / Storefront Catalog Renderer */
+    window.renderCatalogView = function() {
+      const container = document.getElementById('catalogGridContainer');
+      const query = (document.getElementById('searchCatalogInput')?.value || '').toLowerCase();
+      const cur = appState.currency || '$';
+
+      const filtered = appState.products.filter(p => p.name.toLowerCase().includes(query));
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400">
+            <i data-lucide="shopping-bag" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+            <p class="text-sm font-semibold text-slate-600">No hay productos disponibles en el catálogo</p>
+            <p class="text-xs text-slate-400 mt-1">Crea productos con fotos y descripciones para compartirlos con tus clientes.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-all";
+
+        const hasPhoto = Boolean(p.photo);
+        const photoHtml = hasPhoto
+          ? `<img src="${p.photo}" alt="${p.name}" class="w-full h-44 object-cover">`
+          : `<div class="w-full h-44 bg-gradient-to-br from-indigo-50 to-slate-100 flex flex-col items-center justify-center text-slate-400">
+               <i data-lucide="image" class="w-8 h-8 text-slate-300 mb-1"></i>
+               <span class="text-[11px] font-semibold text-slate-400">Sin foto</span>
+             </div>`;
+
+        const stockBadge = p.stock > 0
+          ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> En stock (${p.stock} u.)
+             </span>`
+          : `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+               A pedido
+             </span>`;
+
+        card.innerHTML = `
+          <div>
+            <div class="relative">
+              ${photoHtml}
+              <div class="absolute top-2 right-2">
+                ${stockBadge}
+              </div>
+            </div>
+            <div class="p-4 space-y-2">
+              <h3 class="font-bold text-sm text-slate-900 leading-snug">${p.name}</h3>
+              <p class="text-xs text-slate-500 line-clamp-2">${p.description || 'Producto artesanal de alta calidad.'}</p>
+              <div class="pt-1 flex items-baseline justify-between">
+                <span class="text-xs text-slate-400 font-semibold">Precio:</span>
+                <span class="text-lg font-black text-emerald-600">${cur}${p.suggestedPrice.toLocaleString('es-AR')}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 pt-0 border-t border-slate-100 grid grid-cols-2 gap-2 mt-2">
+            <button onclick="shareSingleProductWhatsApp('${p.id}')" class="w-full text-xs font-bold py-2 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all active:scale-95">
+              <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> WhatsApp
+            </button>
+            <button onclick="addProductDirectToQuote('${p.id}')" class="w-full text-xs font-semibold py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+              <i data-lucide="file-plus" class="w-3.5 h-3.5"></i> Presupuestar
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    };
+
+    window.shareEntireCatalogWhatsApp = function() {
+      if (appState.products.length === 0) {
+        showToast("No tienes productos en el catálogo para compartir", "error");
+        return;
+      }
+      const cur = appState.currency || '$';
+      const brand = appState.brandName || 'Nuestro Emprendimiento';
+
+      let msg = `✨ *Catálogo de Productos - ${brand}* ✨\n\n`;
+      msg += `¡Hola! Te compartimos nuestra lista de productos disponibles:\n\n`;
+
+      appState.products.forEach((p, idx) => {
+        msg += `*${idx + 1}. ${p.name}*\n`;
+        msg += `💰 Precio: *${cur}${p.suggestedPrice.toLocaleString('es-AR')}*\n`;
+        if (p.description) {
+          msg += `📝 ${p.description}\n`;
+        }
+        msg += `📦 Disponibilidad: ${p.stock > 0 ? `Inmediata (${p.stock} u.)` : 'Por encargo'}\n\n`;
+      });
+
+      msg += `📲 ¿Deseas encargar alguno? ¡Escríbenos y coordinamos tu pedido!`;
+
+      const encoded = encodeURIComponent(msg);
+      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    };
+
+    window.shareSingleProductWhatsApp = function(prodId) {
+      const p = appState.products.find(x => x.id === prodId);
+      if (!p) return;
+      const cur = appState.currency || '$';
+      const brand = appState.brandName || 'Nuestro Emprendimiento';
+
+      let msg = `✨ *${brand}* ✨\n\n`;
+      msg += `Te comparto información de *${p.name}*:\n\n`;
+      if (p.description) {
+        msg += `📝 ${p.description}\n`;
+      }
+      msg += `💰 *Precio: ${cur}${p.suggestedPrice.toLocaleString('es-AR')}*\n`;
+      msg += `📦 Stock: ${p.stock > 0 ? `Disponible (${p.stock} u.)` : 'Se elabora por encargo'}\n\n`;
+      msg += `¿Te gustaría reservarlo? ¡Avísame!`;
+
+      const encoded = encodeURIComponent(msg);
+      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    };
+
+    /* TAB: Presupuestos / Cotizaciones */
+    window.renderQuotationsList = function() {
+      const container = document.getElementById('quotationsListContainer');
+      const cur = appState.currency || '$';
+      container.innerHTML = '';
+
+      if (!appState.quotations || appState.quotations.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400">
+            <i data-lucide="file-text" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+            <p class="text-sm font-semibold text-slate-600">No hay presupuestos creados</p>
+            <p class="text-xs text-slate-400 mt-1">Crea cotizaciones personalizadas con tu logo para enviar a tus clientes.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      appState.quotations.forEach(q => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+
+        const itemsSummary = q.items.map(it => `${it.quantity}x ${it.name}`).join(', ');
+
+        card.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="bg-indigo-100 text-indigo-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md">#${q.number}</span>
+              <h4 class="font-bold text-sm text-slate-900">${q.clientName}</h4>
+              <span class="text-xs text-slate-400">• ${q.date}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${itemsSummary}</p>
+            <div class="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+              <span>Total: <strong class="text-slate-900 text-sm font-black">${cur}${q.total.toLocaleString('es-AR')}</strong></span>
+              ${q.clientPhone ? `<span>Tel: ${q.clientPhone}</span>` : ''}
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+            <button onclick="previewSavedQuotation('${q.id}')" class="text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver / Imprimir
+            </button>
+            <button onclick="sendQuotationWhatsAppDirect('${q.id}')" class="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-sm">
+              <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> WhatsApp
+            </button>
+            <button onclick="deleteQuotation('${q.id}')" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    };
+
+    window.openNewQuotationModal = function() {
+      document.getElementById('quotationModalTitle').textContent = 'Nuevo Presupuesto';
+      document.getElementById('quoteId').value = '';
+      document.getElementById('quoteClientName').value = '';
+      document.getElementById('quoteClientPhone').value = '';
+      document.getElementById('quoteValidityDays').value = '15';
+      document.getElementById('quoteNotes').value = 'Seña del 50% para confirmar pedido. Plazo de entrega a coordinar.';
+      activeQuotationItems = [];
+
+      // Pre-add one item from first product if exists
+      if (appState.products.length > 0) {
+        const first = appState.products[0];
+        activeQuotationItems.push({
+          name: first.name,
+          quantity: 1,
+          unitPrice: first.suggestedPrice
+        });
+      }
+
+      renderQuotationItemsRows();
+      document.getElementById('modalQuotation').classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.addProductDirectToQuote = function(prodId) {
+      const p = appState.products.find(x => x.id === prodId);
+      if (!p) return;
+
+      openNewQuotationModal();
+      activeQuotationItems = [{
+        name: p.name,
+        quantity: 1,
+        unitPrice: p.suggestedPrice
+      }];
+      renderQuotationItemsRows();
+    };
+
+    window.closeQuotationModal = function() {
+      document.getElementById('modalQuotation').classList.add('hidden');
+    };
+
+    window.addQuoteItemFromCatalogPrompt = function() {
+      if (appState.products.length === 0) {
+        showToast("No tienes productos cargados en el catálogo", "error");
+        return;
+      }
+      const first = appState.products[0];
+      activeQuotationItems.push({
+        name: first.name,
+        quantity: 1,
+        unitPrice: first.suggestedPrice
+      });
+      renderQuotationItemsRows();
+    };
+
+    window.addCustomQuoteItemRow = function() {
+      activeQuotationItems.push({
+        name: 'Servicio / Producto Personalizado',
+        quantity: 1,
+        unitPrice: 1000
+      });
+      renderQuotationItemsRows();
+    };
+
+    window.renderQuotationItemsRows = function() {
+      const container = document.getElementById('quoteItemsList');
+      const cur = appState.currency || '$';
+      container.innerHTML = '';
+
+      let total = 0;
+
+      activeQuotationItems.forEach((item, index) => {
+        const subtotal = item.quantity * item.unitPrice;
+        total += subtotal;
+
+        const row = document.createElement('div');
+        row.className = "flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white p-2 rounded-xl border border-slate-200";
+
+        // Product Catalog Select or Custom Input
+        let catalogSelectHtml = `<select onchange="onQuoteSelectCatalogItem(${index}, this.value)" class="text-xs bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:ring-1 focus:ring-indigo-500 flex-1">
+          <option value="__custom__">✏️ Personalizado (Escribir abajo)</option>
+          ${appState.products.map(p => `<option value="${p.id}" ${p.name === item.name ? 'selected' : ''}>${p.name} (${cur}${p.suggestedPrice})</option>`).join('')}
+        </select>`;
+
+        row.innerHTML = `
+          <div class="flex-1 space-y-1">
+            ${catalogSelectHtml}
+            <input type="text" value="${item.name}" oninput="activeQuotationItems[${index}].name = this.value" placeholder="Nombre o detalle del ítem" class="w-full text-xs px-2 py-1 bg-white border border-slate-200 rounded-lg">
+          </div>
+          <div class="flex items-center gap-2 justify-between sm:justify-end">
+            <div class="flex items-center gap-1 w-24">
+              <span class="text-[10px] text-slate-400 font-bold">Cant:</span>
+              <input type="number" min="1" step="1" value="${item.quantity}" oninput="updateQuoteItemQty(${index}, this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-1 text-center font-bold">
+            </div>
+            <div class="flex items-center gap-1 w-28">
+              <span class="text-[10px] text-slate-400 font-bold">PVP:</span>
+              <input type="number" min="0" step="any" value="${item.unitPrice}" oninput="updateQuoteItemPrice(${index}, this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-1 text-center font-bold">
+            </div>
+            <div class="w-20 text-right font-black text-xs text-slate-800">
+              ${cur}${subtotal.toLocaleString('es-AR')}
+            </div>
+            <button type="button" onclick="removeQuoteItemRow(${index})" class="text-slate-400 hover:text-rose-600 p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      document.getElementById('quoteTotalDisplay').textContent = `${cur} ${total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+      lucide.createIcons();
+    };
+
+    window.onQuoteSelectCatalogItem = function(index, prodId) {
+      if (prodId === '__custom__') return;
+      const p = appState.products.find(x => x.id === prodId);
+      if (!p) return;
+      activeQuotationItems[index].name = p.name;
+      activeQuotationItems[index].unitPrice = p.suggestedPrice;
+      renderQuotationItemsRows();
+    };
+
+    window.updateQuoteItemQty = function(index, val) {
+      activeQuotationItems[index].quantity = Math.max(1, parseFloat(val) || 1);
+      renderQuotationItemsRows();
+    };
+
+    window.updateQuoteItemPrice = function(index, val) {
+      activeQuotationItems[index].unitPrice = Math.max(0, parseFloat(val) || 0);
+      renderQuotationItemsRows();
+    };
+
+    window.removeQuoteItemRow = function(index) {
+      activeQuotationItems.splice(index, 1);
+      renderQuotationItemsRows();
+    };
+
+    window.saveAndPreviewQuotation = function() {
+      const clientName = document.getElementById('quoteClientName').value.trim();
+      if (!clientName) {
+        showToast("Ingresa el nombre del cliente", "error");
+        document.getElementById('quoteClientName').focus();
+        return;
+      }
+
+      if (activeQuotationItems.length === 0) {
+        showToast("Agrega al menos un ítem al presupuesto", "error");
+        return;
+      }
+
+      const total = activeQuotationItems.reduce((acc, it) => acc + (it.quantity * it.unitPrice), 0);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const quoteNumber = String((appState.quotations?.length || 0) + 1).padStart(4, '0');
+
+      const quotationObj = {
+        id: 'quote_' + Date.now(),
+        number: quoteNumber,
+        date: dateStr,
+        clientName: clientName,
+        clientPhone: document.getElementById('quoteClientPhone').value.trim(),
+        validityDays: parseInt(document.getElementById('quoteValidityDays').value) || 15,
+        notes: document.getElementById('quoteNotes').value.trim(),
+        items: JSON.parse(JSON.stringify(activeQuotationItems)),
+        total: total
+      };
+
+      if (!appState.quotations) appState.quotations = [];
+      appState.quotations.unshift(quotationObj);
+      saveState();
+
+      closeQuotationModal();
+      renderQuotationsList();
+      showToast("¡Presupuesto generado con éxito!", "success");
+
+      previewQuotationDocument(quotationObj);
+    };
+
+    window.previewSavedQuotation = function(id) {
+      const q = appState.quotations.find(x => x.id === id);
+      if (q) previewQuotationDocument(q);
+    };
+
+    window.previewQuotationDocument = function(q) {
+      activePreviewQuote = q;
+      const cur = appState.currency || '$';
+      const brand = appState.brandName || 'Mi Emprendimiento';
+
+      // Logo handling
+      const docLogoImg = document.getElementById('quoteDocLogoImg');
+      const docLogoFallback = document.getElementById('quoteDocLogoFallback');
+      if (appState.brandLogo) {
+        docLogoImg.src = appState.brandLogo;
+        docLogoImg.classList.remove('hidden');
+        docLogoFallback.classList.add('hidden');
+      } else {
+        docLogoImg.classList.add('hidden');
+        docLogoFallback.textContent = brand.charAt(0).toUpperCase();
+        docLogoFallback.classList.remove('hidden');
+      }
+
+      document.getElementById('quoteDocBrandName').textContent = brand;
+      document.getElementById('quoteDocNumber').textContent = `N° ${q.number}`;
+      document.getElementById('quoteDocDate').textContent = `Fecha: ${q.date}`;
+      document.getElementById('quoteDocClient').textContent = q.clientName;
+      document.getElementById('quoteDocPhone').textContent = q.clientPhone ? `Tel: ${q.clientPhone}` : 'Contacto directo';
+      document.getElementById('quoteDocValidity').textContent = `${q.validityDays} días corridos`;
+
+      const tbody = document.getElementById('quoteDocItemsBody');
+      tbody.innerHTML = '';
+      q.items.forEach(it => {
+        const tr = document.createElement('tr');
+        const sub = it.quantity * it.unitPrice;
+        tr.innerHTML = `
+          <td class="py-2 font-medium text-slate-800">${it.name}</td>
+          <td class="py-2 text-center text-slate-600">${it.quantity}</td>
+          <td class="py-2 text-right text-slate-600">${cur}${it.unitPrice.toLocaleString('es-AR')}</td>
+          <td class="py-2 text-right font-bold text-slate-900">${cur}${sub.toLocaleString('es-AR')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('quoteDocTotal').textContent = `${cur} ${q.total.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+
+      const notesBox = document.getElementById('quoteDocNotesBox');
+      const notesText = document.getElementById('quoteDocNotesText');
+      if (q.notes) {
+        notesText.textContent = q.notes;
+        notesBox.classList.remove('hidden');
+      } else {
+        notesBox.classList.add('hidden');
+      }
+
+      document.getElementById('modalPrintQuotation').classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.closePrintQuotationModal = function() {
+      document.getElementById('modalPrintQuotation').classList.add('hidden');
+      activePreviewQuote = null;
+    };
+
+    window.printQuotationDocument = function() {
+      window.print();
+    };
+
+    window.shareActiveQuoteWhatsApp = function() {
+      if (!activePreviewQuote) return;
+      sendQuotationWhatsAppDirect(activePreviewQuote.id);
+    };
+
+    window.sendQuotationWhatsAppDirect = function(quoteId) {
+      const q = appState.quotations.find(x => x.id === quoteId);
+      if (!q) return;
+
+      const cur = appState.currency || '$';
+      const brand = appState.brandName || 'Mi Emprendimiento';
+
+      let msg = `📄 *PRESUPUESTO - ${brand}*\n`;
+      msg += `N°: *${q.number}* | Fecha: ${q.date}\n`;
+      msg += `Cliente: *${q.clientName}*\n\n`;
+      msg += `*Detalle de la cotización:*\n`;
+
+      q.items.forEach(it => {
+        const sub = it.quantity * it.unitPrice;
+        msg += `• ${it.quantity}x ${it.name} - ${cur}${sub.toLocaleString('es-AR')}\n`;
+      });
+
+      msg += `\n💰 *TOTAL: ${cur}${q.total.toLocaleString('es-AR')}*\n`;
+      msg += `⏳ Validez: ${q.validityDays} días\n`;
+
+      if (q.notes) {
+        msg += `\n📌 *Condiciones:* ${q.notes}\n`;
+      }
+
+      msg += `\n¡Gracias por tu consulta! Quedamos atentos para comenzar con tu pedido.`;
+
+      const encoded = encodeURIComponent(msg);
+      window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+    };
+
+    window.deleteQuotation = function(id) {
+      appState.quotations = (appState.quotations || []).filter(x => x.id !== id);
+      saveState();
+      renderQuotationsList();
+      showToast("Presupuesto eliminado");
+    };
+
+    /* Refresh Views overrides */
+    const originalRefreshAllViews = refreshAllViews;
+    function refreshAllViews() {
+      originalRefreshAllViews();
+      updateBrandDisplayUI();
+      renderCatalogView();
+      renderQuotationsList();
     }
 
     function setupPWAAssetsAndServiceWorker() {
@@ -1881,6 +2589,10 @@
       if (tabId === 'calculator') {
         renderRecipeMaterialsList();
         calculatePrice();
+      } else if (tabId === 'catalog') {
+        renderCatalogView();
+      } else if (tabId === 'quotations') {
+        renderQuotationsList();
       } else if (tabId === 'products') {
         renderProductsList();
       } else if (tabId === 'materials') {
@@ -2797,20 +3509,132 @@
         title.textContent = 'Editar Producto';
         document.getElementById('prodId').value = prod.id;
         document.getElementById('prodName').value = prod.name;
+        document.getElementById('prodDescription').value = prod.description || '';
         document.getElementById('prodCost').value = prod.unitCost;
         document.getElementById('prodPrice').value = prod.suggestedPrice;
         document.getElementById('prodStock').value = prod.stock;
+        document.getElementById('prodPhotoData').value = prod.photo || '';
+
+        const previewImg = document.getElementById('prodPhotoPreviewImg');
+        const icon = document.getElementById('prodPhotoPlaceholderIcon');
+        const removeBtn = document.getElementById('btnRemoveProdPhoto');
+
+        if (prod.photo) {
+          previewImg.src = prod.photo;
+          previewImg.classList.remove('hidden');
+          icon.classList.add('hidden');
+          removeBtn.classList.remove('hidden');
+        } else {
+          previewImg.classList.add('hidden');
+          icon.classList.remove('hidden');
+          removeBtn.classList.add('hidden');
+        }
       } else {
         title.textContent = 'Nuevo Producto';
         document.getElementById('prodId').value = '';
         document.getElementById('prodName').value = '';
+        document.getElementById('prodDescription').value = '';
         document.getElementById('prodCost').value = 0;
         document.getElementById('prodPrice').value = 0;
         document.getElementById('prodStock').value = 1;
+        document.getElementById('prodPhotoData').value = '';
+
+        document.getElementById('prodPhotoPreviewImg').classList.add('hidden');
+        document.getElementById('prodPhotoPlaceholderIcon').classList.remove('hidden');
+        document.getElementById('btnRemoveProdPhoto').classList.add('hidden');
       }
 
       previewProductMargin();
       modal.classList.remove('hidden');
+    };
+
+    window.saveManualProduct = function() {
+      const id = document.getElementById('prodId').value;
+      const name = document.getElementById('prodName').value.trim();
+      const description = document.getElementById('prodDescription').value.trim();
+      const photo = document.getElementById('prodPhotoData').value;
+      const unitCost = parseFloat(document.getElementById('prodCost').value) || 0;
+      const suggestedPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
+      const stock = parseInt(document.getElementById('prodStock').value) || 0;
+
+      if (!name) {
+        showToast("Ingresa un nombre para el producto", "error");
+        return;
+      }
+
+      if (id) {
+        const p = appState.products.find(x => x.id === id);
+        if (p) {
+          p.name = name;
+          p.description = description;
+          p.photo = photo;
+          p.unitCost = unitCost;
+          p.suggestedPrice = suggestedPrice;
+          p.stock = stock;
+        }
+        showToast(`Producto "${name}" actualizado`, "success");
+      } else {
+        appState.products.push({
+          id: 'prod_' + Date.now(),
+          name,
+          description,
+          photo,
+          unitCost,
+          suggestedPrice,
+          stock,
+          recipe: []
+        });
+        showToast(`Producto "${name}" creado`, "success");
+      }
+
+      saveState();
+      closeProductModal();
+      renderProductsList();
+      renderCatalogView();
+      updateMetrics();
+    };
+
+    window.saveProductFromCalculator = function() {
+      const name = document.getElementById('calcProductName').value.trim();
+      if (!name) {
+        showToast("Ingresa un nombre para el producto", "error");
+        document.getElementById('calcProductName').focus();
+        return;
+      }
+
+      const { unitCost, suggestedPrice } = calculatePrice();
+      if (suggestedPrice <= 0) {
+        showToast("El precio calculado debe ser mayor a 0", "error");
+        return;
+      }
+
+      const existing = appState.products.find(p => p.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.unitCost = unitCost;
+        existing.suggestedPrice = suggestedPrice;
+        existing.recipe = JSON.parse(JSON.stringify(appState.calculatorRecipe));
+        saveState();
+        showToast(`Producto "${name}" actualizado y guardado`, "success");
+      } else {
+        const newProduct = {
+          id: 'prod_' + Date.now(),
+          name: name,
+          description: '',
+          photo: '',
+          unitCost: unitCost,
+          suggestedPrice: suggestedPrice,
+          stock: 0,
+          recipe: JSON.parse(JSON.stringify(appState.calculatorRecipe))
+        };
+        appState.products.push(newProduct);
+        saveState();
+        showToast(`"${name}" agregado al catálogo con precio ${appState.currency}${suggestedPrice}`, "success");
+      }
+
+      renderProductsList();
+      renderCatalogView();
+      updateMetrics();
+      switchTab('catalog');
     };
 
     window.closeProductModal = function() {
