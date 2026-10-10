@@ -1,0 +1,3123 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>EmprendeCostos - Calculadora & Stock</title>
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EmprendeCostos">
+  <meta name="application-name" content="EmprendeCostos">
+  <meta name="description" content="Calculadora de costos reales, precios sugeridos y control de stock para emprendedores.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input, textarea, select {
+      user-select: text;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .pulse-dot {
+      animation: pulseAnimation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulseAnimation {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+  </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col justify-between selection:bg-indigo-100 selection:text-indigo-700">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 py-2.5 sm:px-6 shadow-sm">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-2.5">
+        <!-- Brand Logo Icon Container -->
+        <div id="brandLogoContainer" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 border border-white/20">
+          <i data-lucide="calculator" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-sm sm:text-base font-bold leading-tight text-slate-900 tracking-tight">EmprendeCostos</h1>
+            <span id="syncIndicator" class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+              <span>Sin cuenta</span>
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Precios, stock, corte textil y base de datos</p>
+        </div>
+      </div>
+
+      <!-- Action items -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btnUserAccount" onclick="openAuthModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 rounded-xl shadow-sm shadow-indigo-200 transition-all">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span id="userButtonLabel" class="max-w-[100px] sm:max-w-[130px] truncate">Iniciar Sesión</span>
+        </button>
+
+        <select id="currencySymbol" onchange="changeCurrency(this.value)" class="text-xs font-semibold bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="$">$ (ARS/USD/MXN)</option>
+          <option value="€">€ (EUR)</option>
+          <option value="S/">S/ (PEN)</option>
+          <option value="CLP $">CLP</option>
+          <option value="COP $">COP</option>
+        </select>
+
+        <!-- Install PWA Button -->
+        <button id="btnHeaderInstall" onclick="handleInstallClick()" title="Descargar e instalar en celular o PC" class="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition-all active:scale-95">
+          <i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5"></i>
+          <span>Descargar App</span>
+        </button>
+
+        <button onclick="openShareModal()" title="Compartir o instalar" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i data-lucide="share-2" class="w-4 h-4"></i>
+        </button>
+        <button onclick="openBackupModal()" title="Ajustes y Respaldo" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CLOUD NOTICE BANNER -->
+  <div id="cloudBannerNotice" class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-xs text-indigo-900 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto w-full flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <i data-lucide="cloud" class="w-4 h-4 text-indigo-600 shrink-0"></i>
+        <span id="cloudBannerText">Inicia sesión o crea tu usuario para sincronizar tus insumos y recetas en la nube de forma segura.</span>
+      </div>
+      <button id="cloudBannerAction" onclick="openAuthModal()" class="font-bold underline text-indigo-700 hover:text-indigo-900 shrink-0">
+        Crear cuenta gratis
+      </button>
+    </div>
+  </div>
+
+  <main class="flex-1 overflow-y-auto pb-24 max-w-5xl w-full mx-auto p-3 sm:p-5">
+
+    <!-- TAB 1: CALCULADORA DE PRECIOS -->
+    <section id="view-calculator" class="tab-view block space-y-4">
+      <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm mb-1">
+            Fórmula de Costeo Integral
+          </span>
+          <h2 class="text-lg sm:text-xl font-bold">Calculadora de Costos & Precios</h2>
+          <p class="text-xs sm:text-sm text-indigo-100">Calcula tu costo unitario, margen deseado y comisiones de venta con precisión.</p>
+        </div>
+        <button onclick="resetCalculatorForm()" class="self-start sm:self-auto text-xs bg-white/10 hover:bg-white/20 active:scale-95 text-white font-medium px-3 py-1.5 rounded-xl border border-white/20 transition-all flex items-center gap-1.5">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          Nueva receta
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Input Form Section -->
+        <div class="lg:col-span-7 space-y-4">
+          <!-- 1. Identificación del Producto -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="tag" class="w-4 h-4 text-indigo-600"></i>
+              1. Identificación del Producto
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre del producto *</label>
+                <input type="text" id="calcProductName" placeholder="Ej. Vela de Soja, Almohadón Tusor, Lámina A4..." class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Unidades por lote</label>
+                <input type="number" id="calcBatchUnits" value="1" min="1" step="1" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Insumos y Materias Primas -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                2. Materias Primas del Stock
+              </h3>
+              <button onclick="addMaterialToRecipeRow()" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar insumo
+              </button>
+            </div>
+            <p class="text-xs text-slate-400">Selecciona insumos de tu inventario. Si usas <strong>hojas A4</strong> o <strong>telas</strong>, puedes fraccionar en centímetros exactos.</p>
+            
+            <div id="recipeMaterialsList" class="space-y-2">
+              <!-- Dynamically populated rows -->
+            </div>
+            
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-medium text-slate-600">
+              <span>Subtotal Materias Primas:</span>
+              <span id="subtotalMaterials" class="font-bold text-slate-900 text-sm">$0.00</span>
+            </div>
+          </div>
+
+          <!-- 3. Mano de Obra y Packaging -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+              3. Mano de Obra y Packaging
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Tiempo (minutos)</label>
+                <input type="number" id="calcLaborMinutes" value="30" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Valor de tu hora</label>
+                <input type="number" id="calcLaborHourlyRate" value="3000" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Packaging extra ($)</label>
+                <input type="number" id="calcPackagingCost" value="0" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Gastos Indirectos y Margen -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="percent" class="w-4 h-4 text-indigo-600"></i>
+              4. Costos Fijos & Ganancia Deseada
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-600">Costos indirectos</label>
+                  <span class="text-[10px] text-slate-400">Luz, gas, wifi</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcOverheadPerc" value="10" min="0" max="100" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-600">Margen ganancia *</label>
+                  <span class="text-[10px] text-emerald-600 font-bold">Tu beneficio</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcProfitMargin" value="50" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-600">Comisión venta / POS</label>
+                  <span class="text-[10px] text-slate-400">Tarjetas, app</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcPaymentFee" value="6" min="0" max="90" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Calculation Summary Card -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md p-5 sticky top-20">
+            <h3 class="text-xs uppercase tracking-wider font-extrabold text-slate-400 mb-3 flex items-center justify-between">
+              <span>Desglose por Unidad</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">
+                En tiempo real
+              </span>
+            </h3>
+
+            <!-- Price Highlight -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-xl p-4 mb-4 shadow-inner">
+              <span class="text-xs text-slate-300 font-medium">Precio de Venta Sugerido (PVP):</span>
+              <div class="text-3xl font-extrabold tracking-tight mt-0.5 text-emerald-400" id="resSuggestedPrice">$0.00</div>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800 text-xs text-slate-300">
+                <span>Ganancia Neta Limpia:</span>
+                <span id="resNetProfit" class="font-bold text-emerald-300">$0.00 (0%)</span>
+              </div>
+            </div>
+
+            <!-- Cost Breakdown List -->
+            <div class="space-y-2 text-xs pb-4 border-b border-slate-100">
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="package" class="w-3.5 h-3.5 text-indigo-500"></i> Materias Primas:</span>
+                <span id="resMaterialCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-500"></i> Mano de Obra:</span>
+                <span id="resLaborCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="box" class="w-3.5 h-3.5 text-indigo-500"></i> Packaging extra:</span>
+                <span id="resPackagingCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-500"></i> Costos Indirectos:</span>
+                <span id="resOverheadCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between font-bold text-slate-900 pt-1 text-sm">
+                <span>Costo Total Unitario:</span>
+                <span id="resTotalUnitCost" class="text-indigo-600">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-500 pt-0.5">
+                <span>Comisión de Venta / Pasarela:</span>
+                <span id="resPaymentFeeCost" class="font-semibold text-slate-700">$0.00</span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="pt-4 space-y-2">
+              <button onclick="saveProductFromCalculator()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-2 text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar en Catálogo de Productos
+              </button>
+              <button onclick="copyPriceSummary()" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-[0.99] text-slate-700 font-semibold py-2 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-xs">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar desglose al portapapeles
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: STOCK DE PRODUCTOS TERMINADOS -->
+    <section id="view-products" class="tab-view hidden space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Stock de Productos Terminados</h2>
+          <p class="text-xs text-slate-500">Controla unidades fabricadas, precios de venta y rentabilidad.</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="openProductModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> Nuevo producto
+          </button>
+        </div>
+      </div>
+
+      <!-- Search and filter -->
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+        <input type="text" id="searchProductInput" oninput="renderProductsList()" placeholder="Buscar producto terminado..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- Product Cards Container -->
+      <div id="productsListContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Products populated via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: STOCK DE MATERIA PRIMA -->
+    <section id="view-materials" class="tab-view hidden space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Stock de Materia Prima</h2>
+          <p class="text-xs text-slate-500">Gestiona tus insumos, costos por unidad de medida y existencias.</p>
+        </div>
+        <button onclick="openMaterialModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5 self-start sm:self-auto">
+          <i data-lucide="plus" class="w-4 h-4"></i> Cargar materia prima
+        </button>
+      </div>
+
+      <!-- Search Insumos -->
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+        <input type="text" id="searchMaterialInput" oninput="renderMaterialsList()" placeholder="Buscar insumo (cera, harina, tela, papel)..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- Materials List Container -->
+      <div id="materialsListContainer" class="space-y-2.5">
+        <!-- Materials populated via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 4: RESUMEN / MÉTRICAS -->
+    <section id="view-metrics" class="tab-view hidden space-y-4">
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Resumen del Negocio</h2>
+          <p class="text-xs text-slate-500">Panorama general del valor de tu inventario y potencial de ventas.</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-indigo-700 block mb-0.5">Capital en Insumos</span>
+            <span id="metricRawValue" class="text-base sm:text-xl font-extrabold text-slate-900">$0</span>
+            <span class="text-[10px] text-slate-500 block mt-0.5">Valor de costo actual</span>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-emerald-700 block mb-0.5">Valor Stock Productos</span>
+            <span id="metricProductsValue" class="text-base sm:text-xl font-extrabold text-slate-900">$0</span>
+            <span class="text-[10px] text-slate-500 block mt-0.5">A precio de venta (PVP)</span>
+          </div>
+          <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-amber-700 block mb-0.5">Ganancia Potencial</span>
+            <span id="metricPotentialProfit" class="text-base sm:text-xl font-extrabold text-slate-900">$0</span>
+            <span class="text-[10px] text-slate-500 block mt-0.5">Si vendes todo el stock</span>
+          </div>
+          <div class="bg-violet-50/70 border border-violet-100 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-violet-700 block mb-0.5">Variedad de Ítems</span>
+            <span id="metricTotalCounts" class="text-base sm:text-xl font-extrabold text-slate-900">0 / 0</span>
+            <span class="text-[10px] text-slate-500 block mt-0.5">Productos / Insumos</span>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Consejos para Emprendedores</h3>
+          <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
+            <li><strong>Tu trabajo vale:</strong> La mano de obra debe pagarse a ti mismo como sueldo, no como margen de ganancia.</li>
+            <li><strong>Base de datos en la nube:</strong> Si creas tu usuario y contraseña, tus datos estarán protegidos y podrás abrirlos desde cualquier teléfono o computadora.</li>
+            <li><strong>PWA Instalable:</strong> Puedes pulsar el botón "Descargar App" para usarla como una aplicación nativa en tu pantalla de inicio con su propio ícono.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-2">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+      <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-indigo-600 font-semibold transition-all">
+        <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Calculadora</span>
+      </button>
+      <button onclick="switchTab('products')" id="nav-btn-products" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
+        <i data-lucide="package" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Productos</span>
+      </button>
+      <button onclick="switchTab('materials')" id="nav-btn-materials" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
+        <i data-lucide="boxes" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Insumos</span>
+      </button>
+      <button onclick="switchTab('metrics')" id="nav-btn-metrics" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 font-medium hover:text-slate-900 transition-all">
+        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Métricas</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAL: AUTENTICACIÓN / USUARIOS / BASE DE DATOS EN LA NUBE -->
+  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="database" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900" id="authModalHeaderTitle">Base de Datos & Cuenta</h3>
+            <p class="text-[11px] text-slate-500">Guarda tus insumos y recetas en la nube</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- VIEW: Logged In Account Info -->
+      <div id="authViewLoggedIn" class="hidden space-y-4">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-sm" id="userAvatarText">
+            U
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h4 class="font-bold text-sm text-slate-900 truncate" id="accountDisplayName">Mi Emprendimiento</h4>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span> Sincronizado
+              </span>
+            </div>
+            <p class="text-xs text-slate-600 truncate mt-0.5" id="accountUsernameDisplay">@usuario</p>
+            <p class="text-[11px] text-emerald-700 font-medium mt-1 flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Tu base de datos se guarda en tiempo real
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between text-slate-600">
+            <span>Insumos registrados:</span>
+            <span class="font-bold text-slate-900" id="authStatMaterials">0</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Productos en catálogo:</span>
+            <span class="font-bold text-slate-900" id="authStatProducts">0</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Último respaldo en la nube:</span>
+            <span class="font-semibold text-slate-800" id="authLastSyncTime">Hace unos segundos</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button onclick="forceSyncToCloud()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm text-xs flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="cloud-upload" class="w-4 h-4"></i> Guardar copia ahora mismo en la nube
+          </button>
+          <button onclick="logoutUser()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW: Login & Register Tabs -->
+      <div id="authViewGuest" class="space-y-4">
+        <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+          <button id="authTabLoginBtn" onclick="switchAuthSubTab('login')" class="flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition-all text-center">
+            Iniciar Sesión
+          </button>
+          <button id="authTabRegisterBtn" onclick="switchAuthSubTab('register')" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center">
+            Crear Cuenta Nueva
+          </button>
+        </div>
+
+        <!-- FORM: LOGIN -->
+        <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Usuario o Correo *</label>
+            <div class="relative">
+              <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="text" id="loginUsername" required placeholder="Tu usuario o email" class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
+            <div class="relative">
+              <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="password" id="loginPassword" required placeholder="Tu contraseña" class="w-full pl-9 pr-10 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginPassIcon')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                <i data-lucide="eye" id="loginPassIcon" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="btnLoginSubmit" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <i data-lucide="log-in" class="w-4 h-4"></i> Entrar y Cargar mi Base de Datos
+          </button>
+        </form>
+
+        <!-- FORM: REGISTER -->
+        <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre o Emprendimiento *</label>
+            <div class="relative">
+              <i data-lucide="store" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="text" id="regDisplayName" required placeholder="Ej. Velas Luz, Pastelería Dani, Taller Textil..." class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Usuario único o Correo *</label>
+            <div class="relative">
+              <i data-lucide="at-sign" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="text" id="regUsername" required placeholder="Ej. velitasluz o miemail@gmail.com" class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">Este será tu usuario para iniciar sesión en cualquier celular o PC.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
+            <div class="relative">
+              <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="password" id="regPassword" required minlength="4" placeholder="Crea tu contraseña (mínimo 4 caracteres)" class="w-full pl-9 pr-10 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <button type="button" onclick="togglePasswordVisibility('regPassword', 'regPassIcon')" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                <i data-lucide="eye" id="regPassIcon" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Confirmar Contraseña *</label>
+            <div class="relative">
+              <i data-lucide="check-check" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+              <input type="password" id="regPasswordConfirm" required minlength="4" placeholder="Repite tu contraseña" class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-indigo-50/70 border border-indigo-100 rounded-xl text-[11px] text-indigo-900">
+            <label class="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" id="regIncludeCurrentData" checked class="rounded text-indigo-600 focus:ring-indigo-500 mt-0.5">
+              <span>Guardar en esta cuenta los productos e insumos que tengo actualmente en pantalla.</span>
+            </label>
+          </div>
+
+          <button type="submit" id="btnRegisterSubmit" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-emerald-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Crear Usuario y Activar Base de Datos
+          </button>
+        </form>
+
+        <p class="text-[11px] text-center text-slate-400 pt-1">
+          Tus datos se guardarán de forma privada y podrás acceder siempre con tu clave.
+        </p>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 flex justify-end">
+        <button onclick="closeAuthModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 rounded-lg transition-colors">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Crear/Editar Materia Prima -->
+  <div id="modalMaterial" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[90vh] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 id="modalMaterialTitle" class="font-bold text-base text-slate-900">Agregar Materia Prima</h3>
+        <button onclick="closeMaterialModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="matId">
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Insumo *</label>
+          <input type="text" id="matName" placeholder="Ej. Cera de Soja, Frasco de Vidrio, Tela Tusor, Hoja A4..." class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Unidad de Medida *</label>
+            <select id="matUnit" onchange="toggleMaterialDimensionOptions(this.value)" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="g">Gramos (g)</option>
+              <option value="kg">Kilos (kg)</option>
+              <option value="ml">Mililitros (ml)</option>
+              <option value="l">Litros (l)</option>
+              <option value="u">Unidades (u)</option>
+              <option value="tela">Tela / Textil (Metro x ancho cm)</option>
+              <option value="hoja">Hoja / Papel (A4, A3, pliego...)</option>
+              <option value="m">Metros lineales (cintas, elásticos)</option>
+              <option value="cm">Centímetros (cm)</option>
+              <option value="cm2">Centímetros cuadrados (cm²)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Stock Actual (en unidad)</label>
+            <input type="number" id="matStock" value="1000" min="0" step="any" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <!-- Medidas para Tela / Textil -->
+        <div id="matFabricConfigSection" class="hidden bg-indigo-50/70 p-3 rounded-xl border border-indigo-200/80 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-indigo-900 flex items-center gap-1.5">
+              <i data-lucide="scissors" class="w-3.5 h-3.5 text-indigo-700"></i> Medidas del Rollo de Tela
+            </span>
+            <span class="text-[10px] text-indigo-700 font-medium">Para fraccionar patrones en cm</span>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ancho Estándar de la Pieza</label>
+              <select id="matFabricPreset" onchange="applyFabricPreset(this.value)" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="150">1.50 m (Lienzo, Algodón, Modal)</option>
+                <option value="140">1.40 m (Gabardina, Tapicería)</option>
+                <option value="160">1.60 m (Tusor, Lona, Piqué)</option>
+                <option value="240">2.40 m (Sábanas, Percal)</option>
+                <option value="280">2.80 m (Cortinería / Doble Ancho)</option>
+                <option value="custom">Personalizado (cm)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ancho de la Tela (cm)</label>
+              <input type="number" id="matFabricRollWidth" value="150" min="1" step="any" oninput="updateFabricAreaPreview()" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+          
+          <div class="text-[11px] text-indigo-900 font-semibold flex justify-between items-center pt-1 border-t border-indigo-200/60">
+            <span>Área por metro lineal:</span>
+            <span id="matFabricAreaPreview" class="font-extrabold text-xs">15.000 cm² (1.50 m²)</span>
+          </div>
+        </div>
+
+        <!-- Medidas para Hoja / Papel -->
+        <div id="matSheetConfigSection" class="hidden bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-700"></i> Medidas de la Hoja Base
+            </span>
+            <span class="text-[10px] text-amber-700 font-medium">Para fraccionar por cm en recetas</span>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tamaño Estándar</label>
+              <select id="matSheetPreset" onchange="applySheetPreset(this.value)" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="a4">A4 (21 x 29.7 cm)</option>
+                <option value="a3">A3 (29.7 x 42 cm)</option>
+                <option value="carta">Carta (21.6 x 27.9 cm)</option>
+                <option value="oficio">Oficio (21.6 x 35.6 cm)</option>
+                <option value="pliego5070">Pliego 50 x 70 cm</option>
+                <option value="custom">Personalizado (cm)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ancho (cm)</label>
+              <input type="number" id="matSheetWidth" value="21" min="0.1" step="any" oninput="updateSheetAreaPreview()" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Alto (cm)</label>
+              <input type="number" id="matSheetHeight" value="29.7" min="0.1" step="any" oninput="updateSheetAreaPreview()" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+          
+          <div class="text-[11px] text-amber-800 font-semibold flex justify-between items-center pt-1 border-t border-amber-200/60">
+            <span>Área total por hoja:</span>
+            <span id="matSheetAreaPreview" class="font-extrabold text-xs">623.7 cm²</span>
+          </div>
+        </div>
+
+        <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/80 space-y-2">
+          <span class="text-[11px] font-bold text-indigo-900 block">Cálculo de Costo de Compra</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Cantidad Comprada</label>
+              <input type="number" id="matPurchasedQty" value="1000" min="0.01" step="any" oninput="updateUnitCostPreview()" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Costo Total Pagado ($)</label>
+              <input type="number" id="matPurchasedPrice" value="5000" min="0" step="any" oninput="updateUnitCostPreview()" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+          </div>
+          <div class="text-[11px] text-indigo-800 font-semibold flex justify-between items-center pt-1 border-t border-indigo-100">
+            <span>Costo calculado por unidad:</span>
+            <span id="matPreviewUnitCost" class="font-extrabold text-xs">$5.00 / g</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Alerta de Stock Mínimo (opcional)</label>
+          <input type="number" id="matMinStock" value="100" min="0" step="any" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeMaterialModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          Cancelar
+        </button>
+        <button onclick="saveMaterial()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-100 transition-colors">
+          Guardar Insumo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Crear/Editar Producto Terminado Manualmente -->
+  <div id="modalProduct" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[90vh] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 id="modalProductTitle" class="font-bold text-base text-slate-900">Producto Terminado</h3>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="prodId">
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Producto *</label>
+          <input type="text" id="prodName" placeholder="Ej. Vela Aromática Vainilla 200g" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Costo Unitario ($) *</label>
+            <input type="number" id="prodCost" value="0" min="0" step="any" oninput="previewProductMargin()" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Precio Venta ($) *</label>
+            <input type="number" id="prodPrice" value="0" min="0" step="any" oninput="previewProductMargin()" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Stock Actual (unidades)</label>
+            <input type="number" id="prodStock" value="10" min="0" step="1" class="w-full text-xs sm:text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="flex flex-col justify-end">
+            <div class="bg-slate-100 rounded-xl p-2 text-center">
+              <span class="block text-[10px] text-slate-500">Margen estimado:</span>
+              <span id="prodPreviewMargin" class="text-xs font-bold text-emerald-600">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeProductModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          Cancelar
+        </button>
+        <button onclick="saveManualProduct()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md shadow-indigo-100 transition-colors">
+          Guardar Producto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Fabricar / Producir Lote -->
+  <div id="modalProduce" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="hammer" class="w-5 h-5 text-indigo-600"></i> Producir Lote
+        </h3>
+        <button onclick="closeProduceModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <p class="text-xs text-slate-600">
+          ¿Cuántas unidades de <strong id="produceProductName" class="text-slate-900 font-bold"></strong> deseas fabricar?
+        </p>
+        <div class="mt-3">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de unidades a fabricar</label>
+          <input type="number" id="produceBatchCount" value="5" min="1" step="1" oninput="updateProduceRecipePreview()" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+
+      <div id="produceRecipeDetails" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+        <!-- Insumos to be deducted -->
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeProduceModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          Cancelar
+        </button>
+        <button onclick="executeProduction()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-100 transition-colors flex items-center justify-center gap-1.5">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Fabricar y descontar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Registrar Venta Rápida -->
+  <div id="modalSale" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Registrar Venta
+        </h3>
+        <button onclick="closeSaleModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <p class="text-xs text-slate-600">
+          Venta de: <strong id="saleProductName" class="text-slate-900 font-bold"></strong>
+        </p>
+        <div class="mt-3">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Unidades vendidas</label>
+          <input type="number" id="saleUnitsCount" value="1" min="1" step="1" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeSaleModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+          Cancelar
+        </button>
+        <button onclick="confirmSale()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-100 transition-colors">
+          Confirmar Venta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Respaldo, GitHub & Vercel -->
+  <div id="modalBackup" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-indigo-600"></i> Ajustes & Respaldo
+        </h3>
+        <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-slate-600">
+          Puedes exportar tus datos a un archivo JSON o crear tu usuario para guardar todo en la nube automáticamente.
+        </p>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="exportDataJson()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold p-2.5 rounded-xl border border-indigo-200 flex flex-col items-center justify-center gap-1 transition-colors">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Exportar Copia (.json)</span>
+          </button>
+          
+          <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold p-2.5 rounded-xl border border-slate-200 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors text-center">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            <span>Importar Copia</span>
+            <input type="file" accept=".json" onchange="importDataJson(event)" class="hidden">
+          </label>
+        </div>
+
+        <!-- Deploy to GitHub & Vercel Info Card -->
+        <div class="p-3 bg-slate-900 text-slate-200 rounded-xl space-y-1.5 border border-slate-800">
+          <div class="flex items-center justify-between text-white font-bold">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="globe" class="w-4 h-4 text-emerald-400"></i> Despliegue en Vercel & GitHub
+            </span>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">100% Compatible</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            Este archivo es una <strong>Single Page App (PWA)</strong> autosuficiente. Si lo subes a un repositorio de GitHub como <code>index.html</code> y lo conectas a Vercel, cualquier <code>git push</code> actualizará la app de inmediato sin configuraciones complejas.
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 space-y-2">
+          <button onclick="loadSampleData()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-xl transition-colors text-left flex items-center justify-between">
+            <span>Cargar datos de demostración</span>
+            <i data-lucide="database" class="w-3.5 h-3.5 text-slate-400"></i>
+          </button>
+          <button onclick="clearAllData()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium py-2 px-3 rounded-xl transition-colors text-left flex items-center justify-between">
+            <span>Reiniciar todos los datos</span>
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeBackupModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 rounded-xl transition-colors text-xs">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Instalar en Celular / Descargar App -->
+  <div id="modalShare" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-sm" id="modalLogoIcon">
+            <i data-lucide="calculator" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">Descargar como Aplicación</h3>
+            <p class="text-[11px] text-slate-500">Queda con ícono propio en tu pantalla de inicio</p>
+          </div>
+        </div>
+        <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Platform Tabs -->
+      <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600">
+        <button id="tab-btn-android" onclick="selectInstallPlatform('android')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
+          Android
+        </button>
+        <button id="tab-btn-ios" onclick="selectInstallPlatform('ios')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
+          iPhone / iPad
+        </button>
+        <button id="tab-btn-pc" onclick="selectInstallPlatform('pc')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
+          PC / Mac
+        </button>
+      </div>
+
+      <!-- Step Instructions -->
+      <div class="space-y-3 text-xs">
+        <div id="install-guide-android" class="space-y-2.5">
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-[11px] leading-relaxed flex items-center justify-between">
+            <span>Presiona el botón de instalación directa a continuación:</span>
+          </div>
+          <button id="btnTriggerAndroidNative" onclick="triggerNativeInstallPrompt()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-200 active:scale-95 text-xs">
+            <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Instalar Aplicación Ahora
+          </button>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
+            <div>
+              <p class="font-bold text-slate-800">O desde el menú de Chrome:</p>
+              <p class="text-slate-600 mt-0.5">Toca los <strong>tres puntos (⋮)</strong> en la esquina superior derecha y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="install-guide-ios" class="space-y-2.5 hidden">
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
+            <strong>En iPhone o iPad:</strong> Abre este link en <strong>Safari</strong> y sigue estos 2 pasos:
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
+            <div>
+              <p class="font-bold text-slate-800">Toca el botón Compartir de Safari</p>
+              <p class="text-slate-600 mt-0.5">Es el ícono cuadrado con una flecha hacia arriba en la barra de navegación.</p>
+            </div>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
+            <div>
+              <p class="font-bold text-slate-800">Selecciona "Agregar al inicio" (+)</p>
+              <p class="text-slate-600 mt-0.5">La app se agregará a tu pantalla principal con su logo y sin marcos de navegador.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="install-guide-pc" class="space-y-2.5 hidden">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</div>
+            <div>
+              <p class="font-bold text-slate-800">En Chrome, Edge o Brave</p>
+              <p class="text-slate-600 mt-0.5">Haz clic en el ícono de descarga o pantalla que aparece a la derecha de la barra de direcciones.</p>
+            </div>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</div>
+            <div>
+              <p class="font-bold text-slate-800">Haz clic en "Instalar"</p>
+              <p class="text-slate-600 mt-0.5">Quedará instalada en tu barra de tareas o menú de inicio como software de escritorio.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100">
+          <p class="text-slate-700 font-semibold mb-2 text-xs">Compartir enlace directo:</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="shareViaWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+              <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+            </button>
+            <button onclick="copyAppUrl()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+              <i data-lucide="copy" class="w-4 h-4"></i> Copiar Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications container -->
+  <div id="toastContainer" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-sm">
+    <!-- Dynamic toasts -->
+  </div>
+
+  <!-- FIREBASE & CLOUD DATABASE & PWA ENGINE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* Global App State */
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'emprende-costos-app';
+    const SESSION_USER_KEY = 'emprende_active_session_v1';
+    const LOCAL_FALLBACK_KEY = 'emprende_costos_local_backup_v1';
+    
+    let db = null;
+    let auth = null;
+    let firebaseUser = null;
+    let firestoreUnsubscribe = null;
+
+    let appState = {
+      currency: '$',
+      rawMaterials: [],
+      products: [],
+      calculatorRecipe: []
+    };
+
+    let currentUserAccount = null; // { username, displayName, docId }
+    let activeProducingProduct = null;
+    let activeSaleProduct = null;
+    let deferredInstallPrompt = null;
+    let cloudSaveTimeout = null;
+
+    /* Demo data for onboarding */
+    const sampleSeedData = {
+      currency: '$',
+      rawMaterials: [
+        { id: 'mat_1', name: 'Cera de Soja Premium', unit: 'g', stock: 5000, purchasedQty: 5000, purchasedPrice: 15000, unitCost: 3.0, minStock: 1000 },
+        { id: 'mat_2', name: 'Esencia Aromática Vainilla', unit: 'ml', stock: 250, purchasedQty: 250, purchasedPrice: 6000, unitCost: 24.0, minStock: 50 },
+        { id: 'mat_3', name: 'Pabilo de Algodón con Ojalillo', unit: 'u', stock: 80, purchasedQty: 100, purchasedPrice: 8000, unitCost: 80.0, minStock: 20 },
+        { id: 'mat_4', name: 'Frasco de Vidrio Ámbar 200cc', unit: 'u', stock: 45, purchasedQty: 50, purchasedPrice: 25000, unitCost: 500.0, minStock: 10 },
+        { 
+          id: 'mat_5', 
+          name: 'Hoja A4 Papel Fotográfico Autoadhesivo', 
+          unit: 'hoja', 
+          stock: 50, 
+          purchasedQty: 50, 
+          purchasedPrice: 15000, 
+          unitCost: 300.0, 
+          minStock: 10,
+          isSheet: true,
+          sheetPreset: 'a4',
+          sheetWidth: 21,
+          sheetHeight: 29.7
+        },
+        {
+          id: 'mat_6',
+          name: 'Tela Tusor 100% Algodón',
+          unit: 'tela',
+          stock: 15,
+          purchasedQty: 10,
+          purchasedPrice: 60000,
+          unitCost: 6000.0,
+          minStock: 2,
+          isFabric: true,
+          fabricRollWidth: 150
+        }
+      ],
+      products: [
+        {
+          id: 'prod_1',
+          name: 'Vela Aromática Soja Vainilla 200g',
+          unitCost: 1850,
+          suggestedPrice: 4200,
+          stock: 12,
+          recipe: [
+            { materialId: 'mat_1', quantityUsed: 190 },
+            { materialId: 'mat_2', quantityUsed: 15 },
+            { materialId: 'mat_3', quantityUsed: 1 },
+            { materialId: 'mat_4', quantityUsed: 1 },
+            { 
+              materialId: 'mat_5', 
+              quantityUsed: 0.16, 
+              useDimensions: true, 
+              dimWidth: 10, 
+              dimHeight: 10, 
+              dimCuts: 1 
+            }
+          ]
+        },
+        {
+          id: 'prod_2',
+          name: 'Funda Almohadón Tusor 40x40 cm',
+          unitCost: 2600,
+          suggestedPrice: 6500,
+          stock: 8,
+          recipe: [
+            {
+              materialId: 'mat_6',
+              quantityUsed: 0.264,
+              useFabricDimensions: true,
+              fabricCutWidth: 42,
+              fabricCutHeight: 42,
+              fabricCuts: 2,
+              fabricWastePerc: 5
+            }
+          ]
+        }
+      ],
+      calculatorRecipe: [
+        {
+          materialId: 'mat_6',
+          quantityUsed: 0.264,
+          useFabricDimensions: true,
+          fabricCutWidth: 42,
+          fabricCutHeight: 42,
+          fabricCuts: 2,
+          fabricWastePerc: 5
+        }
+      ]
+    };
+
+    /* --- BRAND LOGO GENERATOR & PWA ASSETS --- */
+    function createBrandedLogoSvg() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+        <defs>
+          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4f46e5" />
+            <stop offset="50%" stop-color="#4338ca" />
+            <stop offset="100%" stop-color="#312e81" />
+          </linearGradient>
+          <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#10b981" />
+            <stop offset="100%" stop-color="#059669" />
+          </linearGradient>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#1e1b4b" flood-opacity="0.45" />
+          </filter>
+        </defs>
+        <!-- Background squircle -->
+        <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+        <!-- App Icon Graphic (Calculator + Stock boxes) -->
+        <g filter="url(#shadow)">
+          <!-- Main calculator body -->
+          <rect x="110" y="80" width="292" height="352" rx="42" fill="#ffffff" />
+          <!-- Screen -->
+          <rect x="142" y="116" width="228" height="74" rx="20" fill="url(#screenGrad)" />
+          <!-- Screen text line / display -->
+          <circle cx="170" cy="153" r="8" fill="#ffffff" opacity="0.9"/>
+          <rect x="195" y="146" width="85" height="14" rx="7" fill="#ffffff" opacity="0.9"/>
+          <text x="345" y="162" font-family="sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="end">$%</text>
+          
+          <!-- Keypad buttons -->
+          <!-- Row 1 -->
+          <rect x="142" y="214" width="62" height="46" rx="14" fill="#e0e7ff" />
+          <text x="173" y="244" font-family="sans-serif" font-weight="800" font-size="22" fill="#4338ca" text-anchor="middle">+</text>
+
+          <rect x="225" y="214" width="62" height="46" rx="14" fill="#e0e7ff" />
+          <text x="256" y="244" font-family="sans-serif" font-weight="800" font-size="22" fill="#4338ca" text-anchor="middle">−</text>
+
+          <rect x="308" y="214" width="62" height="46" rx="14" fill="#e0e7ff" />
+          <text x="339" y="244" font-family="sans-serif" font-weight="800" font-size="22" fill="#4338ca" text-anchor="middle">×</text>
+
+          <!-- Row 2 -->
+          <rect x="142" y="278" width="62" height="46" rx="14" fill="#f1f5f9" />
+          <text x="173" y="308" font-family="sans-serif" font-weight="700" font-size="20" fill="#334155" text-anchor="middle">1</text>
+
+          <rect x="225" y="278" width="62" height="46" rx="14" fill="#f1f5f9" />
+          <text x="256" y="308" font-family="sans-serif" font-weight="700" font-size="20" fill="#334155" text-anchor="middle">2</text>
+
+          <rect x="308" y="278" width="62" height="46" rx="14" fill="#f1f5f9" />
+          <text x="339" y="308" font-family="sans-serif" font-weight="700" font-size="20" fill="#334155" text-anchor="middle">3</text>
+
+          <!-- Row 3 (Action button = "=") -->
+          <rect x="142" y="342" width="145" height="48" rx="14" fill="#4f46e5" />
+          <text x="214" y="374" font-family="sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle">PRECIO</text>
+
+          <rect x="308" y="342" width="62" height="48" rx="14" fill="#10b981" />
+          <text x="339" y="374" font-family="sans-serif" font-weight="900" font-size="24" fill="#ffffff" text-anchor="middle">=</text>
+        </g>
+      </svg>`;
+    }
+
+    function setupPWAAssetsAndServiceWorker() {
+      const svgCode = createBrandedLogoSvg();
+      const svgDataUri = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgCode);
+
+      // Favicon & Apple Touch Icon
+      let favicon = document.querySelector('link[rel="icon"]');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      favicon.href = svgDataUri;
+      favicon.type = 'image/svg+xml';
+
+      let appleTouch = document.querySelector('link[rel="apple-touch-icon"]');
+      if (!appleTouch) {
+        appleTouch = document.createElement('link');
+        appleTouch.rel = 'apple-touch-icon';
+        document.head.appendChild(appleTouch);
+      }
+      appleTouch.href = svgDataUri;
+
+      // Web App Manifest
+      const manifestObject = {
+        name: "EmprendeCostos - Calculadora & Stock",
+        short_name: "EmprendeCostos",
+        description: "Calculadora de costos reales, precios y control de stock para emprendedores.",
+        start_url: window.location.pathname || "/",
+        display: "standalone",
+        background_color: "#4f46e5",
+        theme_color: "#4f46e5",
+        orientation: "portrait",
+        icons: [
+          {
+            src: svgDataUri,
+            sizes: "192x192 512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifestObject)], { type: 'application/json' });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+      
+      let manifestLink = document.querySelector('link[rel="manifest"]');
+      if (!manifestLink) {
+        manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        document.head.appendChild(manifestLink);
+      }
+      manifestLink.href = manifestUrl;
+
+      // Inline Service Worker for GitHub & Vercel deployment caching + PWA install criteria
+      if ('serviceWorker' in navigator) {
+        const swContent = `
+          const CACHE_NAME = 'emprende-cache-v2';
+          self.addEventListener('install', (e) => {
+            self.skipWaiting();
+          });
+          self.addEventListener('activate', (e) => {
+            e.waitUntil(
+              caches.keys().then((keys) => {
+                return Promise.all(
+                  keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+                );
+              }).then(() => self.clients.claim())
+            );
+          });
+          self.addEventListener('fetch', (e) => {
+            // Network-first strategy for dynamic deployment updates on Vercel
+            if (e.request.method === 'GET' && e.request.url.startsWith('http')) {
+              e.respondWith(
+                fetch(e.request)
+                  .catch(() => caches.match(e.request))
+              );
+            }
+          });
+        `;
+        const swBlob = new Blob([swContent], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+
+        navigator.serviceWorker.register(swUrl)
+          .then(() => console.log("PWA Service Worker listo."))
+          .catch(err => console.log("Service Worker registro opcional:", err));
+      }
+    }
+
+    async function initFirebase() {
+      try {
+        if (typeof __firebase_config !== 'undefined') {
+          const firebaseConfig = JSON.parse(__firebase_config);
+          const app = initializeApp(firebaseConfig);
+          auth = getAuth(app);
+          db = getFirestore(app);
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+
+          firebaseUser = auth.currentUser;
+          console.log("Firebase conectado exitosamente. UID:", firebaseUser?.uid);
+          
+          await checkSavedUserSession();
+        } else {
+          console.warn("Sin Firebase detectado; operando con almacenamiento local.");
+        }
+      } catch (err) {
+        console.error("Error al inicializar Firebase:", err);
+      }
+    }
+
+    async function hashPassword(password) {
+      const msgBuffer = new TextEncoder().encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function cleanUsernameId(username) {
+      return username.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '_');
+    }
+
+    async function checkSavedUserSession() {
+      const savedSession = sessionStorage.getItem(SESSION_USER_KEY);
+      if (savedSession && db && firebaseUser) {
+        try {
+          const userMeta = JSON.parse(savedSession);
+          if (userMeta && userMeta.docId) {
+            await loadUserFromCloud(userMeta.docId);
+          }
+        } catch (e) {
+          console.error("Error leyendo sesión previa:", e);
+        }
+      }
+    }
+
+    window.handleRegisterSubmit = async function(e) {
+      e.preventDefault();
+      const displayName = document.getElementById('regDisplayName').value.trim();
+      const rawUsername = document.getElementById('regUsername').value.trim();
+      const pass = document.getElementById('regPassword').value;
+      const passConfirm = document.getElementById('regPasswordConfirm').value;
+      const includeData = document.getElementById('regIncludeCurrentData').checked;
+
+      if (!displayName || !rawUsername || !pass) {
+        showToast("Completa todos los campos requeridos", "error");
+        return;
+      }
+
+      if (pass.length < 4) {
+        showToast("La contraseña debe tener al menos 4 caracteres", "error");
+        return;
+      }
+
+      if (pass !== passConfirm) {
+        showToast("Las contraseñas no coinciden", "error");
+        return;
+      }
+
+      const docId = cleanUsernameId(rawUsername);
+      const submitBtn = document.getElementById('btnRegisterSubmit');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Creando cuenta en la nube...`;
+
+      try {
+        if (!db || !firebaseUser) {
+          // Local fallback registration
+          currentUserAccount = {
+            username: rawUsername,
+            displayName: displayName,
+            docId: docId
+          };
+          sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+          saveState();
+          updateAuthUIState();
+          closeAuthModal();
+          showToast(`¡Cuenta "${displayName}" creada localmente!`, "success");
+          return;
+        }
+
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'emprende_users', docId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          showToast("Este usuario o correo ya existe. Por favor inicia sesión.", "error");
+          switchAuthSubTab('login');
+          document.getElementById('loginUsername').value = rawUsername;
+          return;
+        }
+
+        const hashed = await hashPassword(pass);
+        const dataToSave = includeData ? JSON.parse(JSON.stringify(appState)) : JSON.parse(JSON.stringify(sampleSeedData));
+
+        const newAccountPayload = {
+          username: rawUsername,
+          docId: docId,
+          displayName: displayName,
+          passwordHash: hashed,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          appState: dataToSave
+        };
+
+        await setDoc(userDocRef, newAccountPayload);
+
+        currentUserAccount = {
+          username: rawUsername,
+          displayName: displayName,
+          docId: docId
+        };
+        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+
+        appState = dataToSave;
+        subscribeToUserCloudDatabase(docId);
+
+        updateAuthUIState();
+        refreshAllViews();
+        closeAuthModal();
+        showToast(`¡Bienvenido ${displayName}! Base de datos en la nube activada.`, "success");
+      } catch (err) {
+        console.error("Error al registrar cuenta:", err);
+        showToast("No se pudo registrar la cuenta en este momento", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
+    };
+
+    window.handleLoginSubmit = async function(e) {
+      e.preventDefault();
+      const rawUsername = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+
+      if (!rawUsername || !pass) {
+        showToast("Ingresa tu usuario y contraseña", "error");
+        return;
+      }
+
+      const docId = cleanUsernameId(rawUsername);
+      const submitBtn = document.getElementById('btnLoginSubmit');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Conectando...`;
+
+      try {
+        if (!db || !firebaseUser) {
+          currentUserAccount = {
+            username: rawUsername,
+            displayName: rawUsername,
+            docId: docId
+          };
+          sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+          updateAuthUIState();
+          closeAuthModal();
+          showToast(`Sesión iniciada con éxito`, "success");
+          return;
+        }
+
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'emprende_users', docId);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+          showToast("Usuario no encontrado. Verifica tus datos o crea una cuenta.", "error");
+          return;
+        }
+
+        const userData = userDocSnap.data();
+        const inputHash = await hashPassword(pass);
+
+        if (userData.passwordHash !== inputHash) {
+          showToast("Contraseña incorrecta. Inténtalo de nuevo.", "error");
+          return;
+        }
+
+        currentUserAccount = {
+          username: userData.username || rawUsername,
+          displayName: userData.displayName || 'Mi Emprendimiento',
+          docId: docId
+        };
+        sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+
+        if (userData.appState) {
+          appState = userData.appState;
+        }
+
+        subscribeToUserCloudDatabase(docId);
+        updateAuthUIState();
+        refreshAllViews();
+        closeAuthModal();
+        showToast(`¡Bienvenido de nuevo, ${currentUserAccount.displayName}!`, "success");
+      } catch (err) {
+        console.error("Error al iniciar sesión:", err);
+        showToast("Error de conexión al iniciar sesión", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
+    };
+
+    async function loadUserFromCloud(docId) {
+      if (!db || !firebaseUser) return;
+      try {
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'emprende_users', docId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          currentUserAccount = {
+            username: userData.username,
+            displayName: userData.displayName,
+            docId: docId
+          };
+          if (userData.appState) {
+            appState = userData.appState;
+          }
+          subscribeToUserCloudDatabase(docId);
+          updateAuthUIState();
+          refreshAllViews();
+        }
+      } catch (e) {
+        console.error("Error al cargar usuario de la nube:", e);
+      }
+    }
+
+    function subscribeToUserCloudDatabase(docId) {
+      if (firestoreUnsubscribe) {
+        firestoreUnsubscribe();
+        firestoreUnsubscribe = null;
+      }
+      if (!db || !firebaseUser || !docId) return;
+
+      const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'emprende_users', docId);
+      firestoreUnsubscribe = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data && data.updatedAt) {
+            const timeStr = new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const lastSyncEl = document.getElementById('authLastSyncTime');
+            if (lastSyncEl) lastSyncEl.textContent = `Hoy a las ${timeStr}`;
+          }
+        }
+      }, (err) => {
+        console.warn("Snapshot notice:", err);
+      });
+    }
+
+    function saveState() {
+      // Local backup guarantee
+      try {
+        localStorage.setItem(LOCAL_FALLBACK_KEY, JSON.stringify(appState));
+      } catch (e) {}
+
+      // Cloud save if logged in
+      if (currentUserAccount && db && firebaseUser) {
+        clearTimeout(cloudSaveTimeout);
+        cloudSaveTimeout = setTimeout(async () => {
+          try {
+            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'emprende_users', currentUserAccount.docId);
+            await setDoc(userDocRef, {
+              appState: appState,
+              updatedAt: new Date().toISOString()
+            }, { merge: true });
+
+            const lastSyncEl = document.getElementById('authLastSyncTime');
+            if (lastSyncEl) lastSyncEl.textContent = `Guardado ahora mismo`;
+            
+            const syncDot = document.getElementById('syncIndicator');
+            if (syncDot) {
+              syncDot.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span><span>En la nube</span>`;
+            }
+          } catch (err) {
+            console.error("Error guardando en la nube:", err);
+          }
+        }, 500);
+      }
+    }
+
+    window.logoutUser = function() {
+      if (firestoreUnsubscribe) {
+        firestoreUnsubscribe();
+        firestoreUnsubscribe = null;
+      }
+      sessionStorage.removeItem(SESSION_USER_KEY);
+      currentUserAccount = null;
+      updateAuthUIState();
+      closeAuthModal();
+      showToast("Has cerrado sesión. Tus datos siguen seguros en tu cuenta.", "info");
+    };
+
+    window.forceSyncToCloud = async function() {
+      if (!currentUserAccount || !db || !firebaseUser) {
+        showToast("Debes iniciar sesión para sincronizar", "error");
+        return;
+      }
+      try {
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'emprende_users', currentUserAccount.docId);
+        await setDoc(userDocRef, {
+          appState: appState,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        showToast("¡Base de datos sincronizada en la nube con éxito!", "success");
+      } catch (err) {
+        showToast("Error al sincronizar con la nube", "error");
+      }
+    };
+
+    function updateAuthUIState() {
+      const userBtnLabel = document.getElementById('userButtonLabel');
+      const syncIndicator = document.getElementById('syncIndicator');
+      const banner = document.getElementById('cloudBannerNotice');
+      const guestView = document.getElementById('authViewGuest');
+      const loggedView = document.getElementById('authViewLoggedIn');
+      const title = document.getElementById('authModalHeaderTitle');
+
+      if (currentUserAccount) {
+        userBtnLabel.textContent = currentUserAccount.displayName;
+        if (syncIndicator) {
+          syncIndicator.className = "hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+          syncIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span><span>En la nube</span>`;
+        }
+
+        if (banner) {
+          banner.classList.remove('bg-indigo-50', 'border-indigo-100');
+          banner.classList.add('bg-emerald-50/70', 'border-emerald-100');
+          document.getElementById('cloudBannerText').innerHTML = `Base de datos conectada a la cuenta <strong>${currentUserAccount.displayName}</strong> (@${currentUserAccount.username})`;
+          document.getElementById('cloudBannerAction').textContent = 'Gestionar cuenta';
+        }
+
+        guestView.classList.add('hidden');
+        loggedView.classList.remove('hidden');
+        title.textContent = 'Mi Cuenta & Base de Datos';
+
+        document.getElementById('accountDisplayName').textContent = currentUserAccount.displayName;
+        document.getElementById('accountUsernameDisplay').textContent = `@${currentUserAccount.username}`;
+        document.getElementById('userAvatarText').textContent = (currentUserAccount.displayName[0] || 'U').toUpperCase();
+
+        document.getElementById('authStatMaterials').textContent = `${appState.rawMaterials.length} insumos`;
+        document.getElementById('authStatProducts').textContent = `${appState.products.length} productos`;
+      } else {
+        userBtnLabel.textContent = 'Iniciar Sesión';
+        if (syncIndicator) {
+          syncIndicator.className = "hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500";
+          syncIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Sin cuenta</span>`;
+        }
+
+        if (banner) {
+          banner.classList.remove('bg-emerald-50/70', 'border-emerald-100');
+          banner.classList.add('bg-indigo-50', 'border-indigo-100');
+          document.getElementById('cloudBannerText').innerHTML = `Inicia sesión o crea tu usuario para guardar tu base de datos en la nube de forma segura.`;
+          document.getElementById('cloudBannerAction').textContent = 'Crear cuenta gratis';
+        }
+
+        guestView.classList.remove('hidden');
+        loggedView.classList.add('hidden');
+        title.textContent = 'Base de Datos & Cuenta';
+      }
+      lucide.createIcons();
+    }
+
+    window.openAuthModal = function() {
+      updateAuthUIState();
+      document.getElementById('modalAuth').classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.closeAuthModal = function() {
+      document.getElementById('modalAuth').classList.add('hidden');
+    };
+
+    window.switchAuthSubTab = function(tab) {
+      const loginForm = document.getElementById('formLogin');
+      const regForm = document.getElementById('formRegister');
+      const loginBtn = document.getElementById('authTabLoginBtn');
+      const regBtn = document.getElementById('authTabRegisterBtn');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        loginBtn.className = 'flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition-all text-center';
+        regBtn.className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center';
+      } else {
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        regBtn.className = 'flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition-all text-center';
+        loginBtn.className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center';
+      }
+      lucide.createIcons();
+    };
+
+    window.togglePasswordVisibility = function(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    };
+
+    function refreshAllViews() {
+      document.getElementById('currencySymbol').value = appState.currency || '$';
+      renderRecipeMaterialsList();
+      calculatePrice();
+      renderProductsList();
+      renderMaterialsList();
+      updateMetrics();
+      lucide.createIcons();
+    }
+
+    function initApp() {
+      // Try local storage if state empty
+      const localStored = localStorage.getItem(LOCAL_FALLBACK_KEY);
+      if (localStored) {
+        try {
+          appState = JSON.parse(localStored);
+        } catch (e) {}
+      }
+
+      if (!appState.rawMaterials || appState.rawMaterials.length === 0) {
+        appState = JSON.parse(JSON.stringify(sampleSeedData));
+      }
+
+      if (!appState.calculatorRecipe || appState.calculatorRecipe.length === 0) {
+        if (appState.rawMaterials.length > 0) {
+          appState.calculatorRecipe = [
+            { materialId: appState.rawMaterials[0].id, quantityUsed: 100 }
+          ];
+        }
+      }
+
+      setupPWAAssetsAndServiceWorker();
+      refreshAllViews();
+      initFirebase();
+      updateAuthUIState();
+    }
+
+    // PWA Install Prompt Listener
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const installBtn = document.getElementById('btnHeaderInstall');
+      if (installBtn) {
+        installBtn.classList.remove('hidden');
+      }
+    });
+
+    window.detectPlatform = function() {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) return 'ios';
+      if (/android/i.test(userAgent)) return 'android';
+      return 'pc';
+    };
+
+    window.selectInstallPlatform = function(platform) {
+      ['ios', 'android', 'pc'].forEach(p => {
+        const guide = document.getElementById(`install-guide-${p}`);
+        const btn = document.getElementById(`tab-btn-${p}`);
+        if (guide) guide.classList.toggle('hidden', p !== platform);
+        if (btn) {
+          if (p === platform) {
+            btn.className = 'flex-1 py-1.5 rounded-lg transition-all text-center bg-white text-indigo-600 shadow-sm';
+          } else {
+            btn.className = 'flex-1 py-1.5 rounded-lg transition-all text-center text-slate-500 hover:text-slate-800';
+          }
+        }
+      });
+      lucide.createIcons();
+    };
+
+    window.handleInstallClick = function() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      if (isStandalone) {
+        showToast("¡Ya estás usando la aplicación instalada!", "success");
+        return;
+      }
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showToast("¡Aplicación instalada con éxito!", "success");
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        openShareModal();
+      }
+    };
+
+    window.triggerNativeInstallPrompt = function() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            showToast("¡Aplicación instalada con éxito!", "success");
+            closeShareModal();
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        showToast("Selecciona 'Agregar a la pantalla principal' en las opciones de Chrome", "info");
+      }
+    };
+
+    window.openShareModal = function() {
+      const platform = detectPlatform();
+      selectInstallPlatform(platform);
+      document.getElementById('modalShare').classList.remove('hidden');
+      lucide.createIcons();
+    };
+
+    window.closeShareModal = function() {
+      document.getElementById('modalShare').classList.add('hidden');
+    };
+
+    window.copyAppUrl = function() {
+      const url = window.location.href;
+      const temp = document.createElement('textarea');
+      temp.value = url;
+      document.body.appendChild(temp);
+      temp.select();
+      try {
+        document.execCommand('copy');
+        showToast("¡Enlace copiado al portapapeles!", "success");
+      } catch (e) {
+        showToast("No se pudo copiar el enlace", "error");
+      }
+      document.body.removeChild(temp);
+    };
+
+    window.shareViaWhatsApp = function() {
+      const url = window.location.href;
+      const msg = encodeURIComponent(`¡Hola! Te comparto EmprendeCostos para calcular precios reales y stock de tu negocio: ${url}`);
+      window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+    };
+
+    window.changeCurrency = function(val) {
+      appState.currency = val;
+      saveState();
+      calculatePrice();
+      renderProductsList();
+      renderMaterialsList();
+      updateMetrics();
+      showToast(`Moneda cambiada a ${val}`);
+    };
+
+    window.switchTab = function(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.classList.remove('text-indigo-600', 'font-semibold');
+        btn.classList.add('text-slate-500', 'font-medium');
+      });
+
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      const navBtn = document.getElementById(`nav-btn-${tabId}`);
+      if (navBtn) {
+        navBtn.classList.remove('text-slate-500', 'font-medium');
+        navBtn.classList.add('text-indigo-600', 'font-semibold');
+      }
+
+      if (tabId === 'calculator') {
+        renderRecipeMaterialsList();
+        calculatePrice();
+      } else if (tabId === 'products') {
+        renderProductsList();
+      } else if (tabId === 'materials') {
+        renderMaterialsList();
+      } else if (tabId === 'metrics') {
+        updateMetrics();
+      }
+
+      lucide.createIcons();
+    };
+
+    window.showToast = function(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const bg = type === 'error' ? 'bg-rose-900/90 text-white' : 
+                 type === 'success' ? 'bg-emerald-900/90 text-white' : 
+                 'bg-slate-900/90 text-white';
+                 
+      toast.className = `${bg} backdrop-blur-md px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+      
+      const icon = type === 'error' ? 'alert-triangle' : (type === 'success' ? 'check' : 'info');
+      toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i><span>${message}</span>`;
+      
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    };
+
+    window.calculatePrice = function() {
+      const cur = appState.currency || '$';
+      const batchUnits = Math.max(1, parseFloat(document.getElementById('calcBatchUnits').value) || 1);
+      
+      // 1. Raw materials cost
+      let totalBatchMaterialsCost = 0;
+      appState.calculatorRecipe.forEach(item => {
+        const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+        if (mat) {
+          let qty = parseFloat(item.quantityUsed) || 0;
+
+          // Dimension calculation for paper sheets (A4, A3, pliegos)
+          if (item.useDimensions && (mat.isSheet || mat.unit === 'hoja')) {
+            const sheetW = parseFloat(mat.sheetWidth) || 21;
+            const sheetH = parseFloat(mat.sheetHeight) || 29.7;
+            const sheetArea = sheetW * sheetH;
+            const usedW = parseFloat(item.dimWidth) || 0;
+            const usedH = parseFloat(item.dimHeight) || 0;
+            const cuts = Math.max(1, parseFloat(item.dimCuts) || 1);
+            if (sheetArea > 0 && usedW > 0 && usedH > 0) {
+              qty = ((usedW * usedH * cuts) / sheetArea);
+              item.quantityUsed = Math.round(qty * 10000) / 10000;
+            }
+          }
+
+          // Dimension calculation for textile / fabrics
+          if (item.useFabricDimensions && (mat.isFabric || mat.unit === 'tela')) {
+            const rollW = parseFloat(mat.fabricRollWidth) || 150;
+            const rollMeterArea = 100 * rollW; // 1 linear meter (100 cm) x roll width
+            const cutW = parseFloat(item.fabricCutWidth) || 0;
+            const cutH = parseFloat(item.fabricCutHeight) || 0;
+            const cuts = Math.max(1, parseFloat(item.fabricCuts) || 1);
+            const waste = 1 + ((parseFloat(item.fabricWastePerc) || 0) / 100);
+
+            if (rollMeterArea > 0 && cutW > 0 && cutH > 0) {
+              const netArea = cutW * cutH * cuts * waste;
+              qty = netArea / rollMeterArea;
+              item.quantityUsed = Math.round(qty * 10000) / 10000;
+            }
+          }
+
+          totalBatchMaterialsCost += qty * mat.unitCost;
+        }
+      });
+      const unitMaterialsCost = totalBatchMaterialsCost / batchUnits;
+      document.getElementById('subtotalMaterials').textContent = `${cur} ${totalBatchMaterialsCost.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+      // 2. Labor Cost
+      const minutes = parseFloat(document.getElementById('calcLaborMinutes').value) || 0;
+      const hourlyRate = parseFloat(document.getElementById('calcLaborHourlyRate').value) || 0;
+      const totalBatchLabor = (minutes / 60) * hourlyRate;
+      const unitLaborCost = totalBatchLabor / batchUnits;
+
+      // 3. Packaging & Extras
+      const packagingCost = parseFloat(document.getElementById('calcPackagingCost').value) || 0;
+
+      // 4. Overheads (%)
+      const overheadPerc = (parseFloat(document.getElementById('calcOverheadPerc').value) || 0) / 100;
+      const directUnitCost = unitMaterialsCost + unitLaborCost + packagingCost;
+      const unitOverheadCost = directUnitCost * overheadPerc;
+
+      const totalUnitCost = directUnitCost + unitOverheadCost;
+
+      // 5. Margin
+      const profitMarginPerc = (parseFloat(document.getElementById('calcProfitMargin').value) || 0) / 100;
+      const priceBeforeFees = totalUnitCost * (1 + profitMarginPerc);
+
+      // 6. Payment/POS Fee
+      const paymentFeePerc = (parseFloat(document.getElementById('calcPaymentFee').value) || 0) / 100;
+      let finalSuggestedPrice = priceBeforeFees;
+      if (paymentFeePerc > 0 && paymentFeePerc < 0.95) {
+        finalSuggestedPrice = priceBeforeFees / (1 - paymentFeePerc);
+      }
+      
+      const feeAmount = finalSuggestedPrice - priceBeforeFees;
+      const netProfitUnit = priceBeforeFees - totalUnitCost;
+      const netProfitRealPercentage = finalSuggestedPrice > 0 ? (netProfitUnit / finalSuggestedPrice) * 100 : 0;
+
+      // UI
+      document.getElementById('resSuggestedPrice').textContent = `${cur} ${finalSuggestedPrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('resNetProfit').textContent = `${cur} ${netProfitUnit.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${netProfitRealPercentage.toFixed(1)}% margen real)`;
+      document.getElementById('resMaterialCost').textContent = `${cur} ${unitMaterialsCost.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('resLaborCost').textContent = `${cur} ${unitLaborCost.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('resPackagingCost').textContent = `${cur} ${packagingCost.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('resOverheadCost').textContent = `${cur} ${unitOverheadCost.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('resTotalUnitCost').textContent = `${cur} ${totalUnitCost.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('resPaymentFeeCost').textContent = `${cur} ${feeAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+      return {
+        unitCost: Math.round(totalUnitCost * 100) / 100,
+        suggestedPrice: Math.round(finalSuggestedPrice * 100) / 100
+      };
+    };
+
+    window.renderRecipeMaterialsList = function() {
+      const container = document.getElementById('recipeMaterialsList');
+      container.innerHTML = '';
+
+      if (appState.rawMaterials.length === 0) {
+        container.innerHTML = `
+          <div class="p-3 text-center bg-amber-50 text-amber-800 rounded-xl text-xs">
+            No tienes materias primas cargadas en tu inventario.
+            <button onclick="switchTab('materials'); openMaterialModal();" class="underline font-bold block mx-auto mt-1">Cargar mi primer insumo</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (appState.calculatorRecipe.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-2">No agregaste materias primas a esta receta.</p>`;
+        return;
+      }
+
+      appState.calculatorRecipe.forEach((item, index) => {
+        const mat = appState.rawMaterials.find(m => m.id === item.materialId) || appState.rawMaterials[0];
+        const isSheet = mat.isSheet || mat.unit === 'hoja';
+        const isFabric = mat.isFabric || mat.unit === 'tela';
+        const useDimensions = Boolean(item.useDimensions && isSheet);
+        const useFabricDimensions = Boolean(item.useFabricDimensions && isFabric);
+
+        const row = document.createElement('div');
+        row.className = "bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-2";
+
+        let options = appState.rawMaterials.map(m => 
+          `<option value="${m.id}" ${m.id === mat.id ? 'selected' : ''}>${m.name} (${appState.currency}${m.unitCost.toFixed(2)}/${m.unit})</option>`
+        ).join('');
+
+        let quantity = parseFloat(item.quantityUsed) || 0;
+        let dimDetailsHtml = '';
+
+        // Paper sheet cut details
+        if (isSheet) {
+          const sheetW = parseFloat(mat.sheetWidth) || 21;
+          const sheetH = parseFloat(mat.sheetHeight) || 29.7;
+          const sheetArea = sheetW * sheetH;
+          const dimW = item.dimWidth !== undefined ? item.dimWidth : sheetW;
+          const dimH = item.dimHeight !== undefined ? item.dimHeight : (sheetH / 2).toFixed(1);
+          const dimCuts = item.dimCuts || 1;
+
+          if (useDimensions) {
+            const usedArea = dimW * dimH * dimCuts;
+            const fraction = sheetArea > 0 ? (usedArea / sheetArea) : 1;
+            quantity = fraction;
+            item.quantityUsed = Math.round(fraction * 10000) / 10000;
+          }
+
+          const percentOfSheet = (quantity * 100).toFixed(1);
+
+          dimDetailsHtml = `
+            <div class="pt-2 border-t border-slate-200/80">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-bold text-amber-800 flex items-center gap-1">
+                  <i data-lucide="scissors" class="w-3.5 h-3.5"></i>
+                  ${useDimensions ? 'Cálculo por Medidas (Alto x Ancho cm)' : 'Cálculo por Hojas Enteras'}
+                </span>
+                <button type="button" onclick="toggleRecipeDimensionMode(${index})" class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 underline">
+                  ${useDimensions ? 'Cambiar a hojas enteras' : '📐 Usar medidas en cm (Alto x Ancho)'}
+                </button>
+              </div>
+
+              ${useDimensions ? `
+                <div class="grid grid-cols-3 gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Ancho (cm)</label>
+                    <input type="number" min="0.1" step="any" value="${dimW}" oninput="updateRecipeDimensions(${index}, 'dimWidth', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Alto (cm)</label>
+                    <input type="number" min="0.1" step="any" value="${dimH}" oninput="updateRecipeDimensions(${index}, 'dimHeight', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Cortes/unid.</label>
+                    <input type="number" min="1" step="1" value="${dimCuts}" oninput="updateRecipeDimensions(${index}, 'dimCuts', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-1 text-[11px] text-slate-500 font-medium">
+                  <span>Hoja base: ${sheetW} x ${sheetH} cm (${sheetArea.toFixed(1)} cm²)</span>
+                  <span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    Equivale a ${percentOfSheet}% de 1 hoja (${quantity.toFixed(3)} u.)
+                  </span>
+                </div>
+              ` : `
+                <div class="text-[10px] text-slate-500">
+                  Calculando por hoja entera (${sheetW}x${sheetH} cm). Toca arriba si deseas ingresar medidas en cm.
+                </div>
+              `}
+            </div>
+          `;
+        }
+
+        // Textile / Fabric cut details
+        if (isFabric) {
+          const rollW = parseFloat(mat.fabricRollWidth) || 150;
+          const rollMeterArea = 100 * rollW;
+          const cutW = item.fabricCutWidth !== undefined ? item.fabricCutWidth : 40;
+          const cutH = item.fabricCutHeight !== undefined ? item.fabricCutHeight : 40;
+          const cuts = item.fabricCuts || 1;
+          const waste = item.fabricWastePerc !== undefined ? item.fabricWastePerc : 5;
+
+          if (useFabricDimensions) {
+            const netArea = cutW * cutH * cuts * (1 + (waste / 100));
+            quantity = rollMeterArea > 0 ? (netArea / rollMeterArea) : 1;
+            item.quantityUsed = Math.round(quantity * 10000) / 10000;
+          }
+
+          const percentOfMeter = (quantity * 100).toFixed(1);
+
+          dimDetailsHtml = `
+            <div class="pt-2 border-t border-slate-200/80">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-bold text-indigo-900 flex items-center gap-1">
+                  <i data-lucide="scissors" class="w-3.5 h-3.5 text-indigo-600"></i>
+                  ${useFabricDimensions ? 'Corte Textil (Patrón en cm + Piezas)' : 'Cálculo por Metros Enteros'}
+                </span>
+                <button type="button" onclick="toggleRecipeFabricDimensionMode(${index})" class="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 underline">
+                  ${useFabricDimensions ? 'Ingresar metros decimales directos' : '✂️ Usar medidas de corte (Ancho x Largo cm)'}
+                </button>
+              </div>
+
+              ${useFabricDimensions ? `
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Ancho (cm)</label>
+                    <input type="number" min="0.1" step="any" value="${cutW}" oninput="updateRecipeFabricDimensions(${index}, 'fabricCutWidth', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Largo (cm)</label>
+                    <input type="number" min="0.1" step="any" value="${cutH}" oninput="updateRecipeFabricDimensions(${index}, 'fabricCutHeight', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Piezas/cortes</label>
+                    <input type="number" min="1" step="1" value="${cuts}" oninput="updateRecipeFabricDimensions(${index}, 'fabricCuts', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Costura/Merma %</label>
+                    <input type="number" min="0" step="any" value="${waste}" oninput="updateRecipeFabricDimensions(${index}, 'fabricWastePerc', this.value)" class="w-full text-xs bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold">
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-1 mt-1 text-[11px] text-slate-500 font-medium">
+                  <span>Rollo: ${rollW} cm (1 m = ${rollMeterArea.toLocaleString('es-AR')} cm²)</span>
+                  <span class="text-indigo-700 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                    Equivale a ${quantity.toFixed(3)} m de tela (${percentOfMeter}% del metro)
+                  </span>
+                </div>
+              ` : `
+                <div class="text-[10px] text-slate-500">
+                  Calculando por metros directos (ancho ${rollW} cm). Haz clic arriba para fraccionar por cm de corte.
+                </div>
+              `}
+            </div>
+          `;
+        }
+
+        const costForThisQty = quantity * mat.unitCost;
+
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <div class="flex-1">
+              <select onchange="updateRecipeMaterialId(${index}, this.value)" class="w-full text-xs bg-white border border-slate-200 rounded-lg p-1.5 focus:ring-1 focus:ring-indigo-500">
+                ${options}
+              </select>
+            </div>
+            
+            <div class="w-28 flex items-center gap-1">
+              ${(useDimensions || useFabricDimensions) ? `
+                <span class="w-full text-center text-xs font-extrabold text-indigo-700 bg-indigo-50/70 border border-indigo-200 py-1.5 rounded-lg" title="Calculado por medidas exactas">
+                  ${quantity.toFixed(3)}
+                </span>
+              ` : `
+                <input type="number" min="0" step="any" value="${quantity}" oninput="updateRecipeQuantity(${index}, this.value)" class="w-full text-xs bg-white border border-slate-200 rounded-lg p-1.5 text-center font-semibold focus:ring-1 focus:ring-indigo-500">
+              `}
+              <span class="text-[11px] text-slate-500 font-semibold w-7 truncate">${mat.unit}</span>
+            </div>
+
+            <div class="w-20 text-right font-bold text-xs text-slate-700">
+              ${appState.currency}${costForThisQty.toFixed(1)}
+            </div>
+            <button onclick="removeRecipeMaterialRow(${index})" class="text-slate-400 hover:text-rose-500 p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+          ${dimDetailsHtml}
+        `;
+        container.appendChild(row);
+      });
+
+      lucide.createIcons();
+    };
+
+    window.toggleRecipeFabricDimensionMode = function(index) {
+      const item = appState.calculatorRecipe[index];
+      if (!item) return;
+      const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+      if (!mat) return;
+
+      item.useFabricDimensions = !item.useFabricDimensions;
+      if (item.useFabricDimensions) {
+        item.fabricCutWidth = item.fabricCutWidth || 40;
+        item.fabricCutHeight = item.fabricCutHeight || 40;
+        item.fabricCuts = item.fabricCuts || 1;
+        item.fabricWastePerc = item.fabricWastePerc !== undefined ? item.fabricWastePerc : 5;
+
+        const rollW = parseFloat(mat.fabricRollWidth) || 150;
+        const rollMeterArea = 100 * rollW;
+        const netArea = item.fabricCutWidth * item.fabricCutHeight * item.fabricCuts * (1 + (item.fabricWastePerc / 100));
+        item.quantityUsed = rollMeterArea > 0 ? (netArea / rollMeterArea) : 1;
+      }
+      saveState();
+      renderRecipeMaterialsList();
+      calculatePrice();
+    };
+
+    window.updateRecipeFabricDimensions = function(index, field, value) {
+      const item = appState.calculatorRecipe[index];
+      if (!item) return;
+      const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+      if (!mat) return;
+
+      item[field] = parseFloat(value) || 0;
+      const rollW = parseFloat(mat.fabricRollWidth) || 150;
+      const rollMeterArea = 100 * rollW;
+      const cutW = parseFloat(item.fabricCutWidth) || 0;
+      const cutH = parseFloat(item.fabricCutHeight) || 0;
+      const cuts = Math.max(1, parseFloat(item.fabricCuts) || 1);
+      const waste = 1 + ((parseFloat(item.fabricWastePerc) || 0) / 100);
+
+      const netArea = cutW * cutH * cuts * waste;
+      item.quantityUsed = rollMeterArea > 0 ? (netArea / rollMeterArea) : 1;
+      saveState();
+      calculatePrice();
+      renderRecipeMaterialsList();
+    };
+
+    window.toggleRecipeDimensionMode = function(index) {
+      const item = appState.calculatorRecipe[index];
+      if (!item) return;
+      const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+      if (!mat) return;
+
+      item.useDimensions = !item.useDimensions;
+      if (item.useDimensions) {
+        item.dimWidth = item.dimWidth || (mat.sheetWidth || 21);
+        item.dimHeight = item.dimHeight || ((mat.sheetHeight || 29.7) / 2);
+        item.dimCuts = item.dimCuts || 1;
+        const sheetArea = (mat.sheetWidth || 21) * (mat.sheetHeight || 29.7);
+        item.quantityUsed = ((item.dimWidth * item.dimHeight * item.dimCuts) / sheetArea);
+      }
+      saveState();
+      renderRecipeMaterialsList();
+      calculatePrice();
+    };
+
+    window.updateRecipeDimensions = function(index, field, value) {
+      const item = appState.calculatorRecipe[index];
+      if (!item) return;
+      const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+      if (!mat) return;
+
+      item[field] = parseFloat(value) || 0;
+      const sheetArea = (parseFloat(mat.sheetWidth) || 21) * (parseFloat(mat.sheetHeight) || 29.7);
+      const usedArea = (parseFloat(item.dimWidth) || 0) * (parseFloat(item.dimHeight) || 0) * (Math.max(1, parseFloat(item.dimCuts) || 1));
+      
+      item.quantityUsed = sheetArea > 0 ? (usedArea / sheetArea) : 1;
+      saveState();
+      calculatePrice();
+      renderRecipeMaterialsList();
+    };
+
+    window.addMaterialToRecipeRow = function() {
+      if (appState.rawMaterials.length === 0) {
+        showToast("Primero carga materias primas en la pestaña Insumos", "error");
+        switchTab('materials');
+        openMaterialModal();
+        return;
+      }
+      const firstMat = appState.rawMaterials[0];
+      const isSheet = firstMat.isSheet || firstMat.unit === 'hoja';
+      const isFabric = firstMat.isFabric || firstMat.unit === 'tela';
+      
+      appState.calculatorRecipe.push({
+        materialId: firstMat.id,
+        quantityUsed: 1,
+        useDimensions: isSheet,
+        dimWidth: isSheet ? (firstMat.sheetWidth || 21) : undefined,
+        dimHeight: isSheet ? (firstMat.sheetHeight || 29.7) : undefined,
+        dimCuts: 1,
+        useFabricDimensions: isFabric,
+        fabricCutWidth: isFabric ? 40 : undefined,
+        fabricCutHeight: isFabric ? 40 : undefined,
+        fabricCuts: 1,
+        fabricWastePerc: 5
+      });
+      saveState();
+      renderRecipeMaterialsList();
+      calculatePrice();
+    };
+
+    window.updateRecipeMaterialId = function(index, newMatId) {
+      const mat = appState.rawMaterials.find(m => m.id === newMatId);
+      const isSheet = mat && (mat.isSheet || mat.unit === 'hoja');
+      const isFabric = mat && (mat.isFabric || mat.unit === 'tela');
+      
+      appState.calculatorRecipe[index].materialId = newMatId;
+      if (isSheet) {
+        appState.calculatorRecipe[index].useDimensions = true;
+        appState.calculatorRecipe[index].useFabricDimensions = false;
+        appState.calculatorRecipe[index].dimWidth = mat.sheetWidth || 21;
+        appState.calculatorRecipe[index].dimHeight = (mat.sheetHeight || 29.7) / 2;
+        appState.calculatorRecipe[index].dimCuts = 1;
+        const sheetArea = (mat.sheetWidth || 21) * (mat.sheetHeight || 29.7);
+        appState.calculatorRecipe[index].quantityUsed = (appState.calculatorRecipe[index].dimWidth * appState.calculatorRecipe[index].dimHeight) / sheetArea;
+      } else if (isFabric) {
+        appState.calculatorRecipe[index].useFabricDimensions = true;
+        appState.calculatorRecipe[index].useDimensions = false;
+        appState.calculatorRecipe[index].fabricCutWidth = 40;
+        appState.calculatorRecipe[index].fabricCutHeight = 40;
+        appState.calculatorRecipe[index].fabricCuts = 1;
+        appState.calculatorRecipe[index].fabricWastePerc = 5;
+        const rollW = parseFloat(mat.fabricRollWidth) || 150;
+        const rollMeterArea = 100 * rollW;
+        appState.calculatorRecipe[index].quantityUsed = (40 * 40 * 1.05) / rollMeterArea;
+      } else {
+        appState.calculatorRecipe[index].useDimensions = false;
+        appState.calculatorRecipe[index].useFabricDimensions = false;
+      }
+
+      saveState();
+      renderRecipeMaterialsList();
+      calculatePrice();
+    };
+
+    window.updateRecipeQuantity = function(index, newQty) {
+      appState.calculatorRecipe[index].quantityUsed = parseFloat(newQty) || 0;
+      saveState();
+      calculatePrice();
+    };
+
+    window.removeRecipeMaterialRow = function(index) {
+      appState.calculatorRecipe.splice(index, 1);
+      saveState();
+      renderRecipeMaterialsList();
+      calculatePrice();
+    };
+
+    window.resetCalculatorForm = function() {
+      document.getElementById('calcProductName').value = '';
+      document.getElementById('calcBatchUnits').value = 1;
+      document.getElementById('calcLaborMinutes').value = 30;
+      document.getElementById('calcPackagingCost').value = 0;
+      appState.calculatorRecipe = [];
+      saveState();
+      renderRecipeMaterialsList();
+      calculatePrice();
+      showToast("Calculadora reiniciada");
+    };
+
+    window.saveProductFromCalculator = function() {
+      const name = document.getElementById('calcProductName').value.trim();
+      if (!name) {
+        showToast("Ingresa un nombre para el producto", "error");
+        document.getElementById('calcProductName').focus();
+        return;
+      }
+
+      const { unitCost, suggestedPrice } = calculatePrice();
+      if (suggestedPrice <= 0) {
+        showToast("El precio calculado debe ser mayor a 0", "error");
+        return;
+      }
+
+      const existing = appState.products.find(p => p.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.unitCost = unitCost;
+        existing.suggestedPrice = suggestedPrice;
+        existing.recipe = JSON.parse(JSON.stringify(appState.calculatorRecipe));
+        saveState();
+        showToast(`Producto "${name}" actualizado y guardado`, "success");
+      } else {
+        const newProduct = {
+          id: 'prod_' + Date.now(),
+          name: name,
+          unitCost: unitCost,
+          suggestedPrice: suggestedPrice,
+          stock: 0,
+          recipe: JSON.parse(JSON.stringify(appState.calculatorRecipe))
+        };
+        appState.products.push(newProduct);
+        saveState();
+        showToast(`"${name}" agregado al catálogo con precio ${appState.currency}${suggestedPrice}`, "success");
+      }
+
+      renderProductsList();
+      updateMetrics();
+      switchTab('products');
+    };
+
+    window.renderMaterialsList = function() {
+      const container = document.getElementById('materialsListContainer');
+      const query = (document.getElementById('searchMaterialInput')?.value || '').toLowerCase();
+      const cur = appState.currency || '$';
+
+      const filtered = appState.rawMaterials.filter(m => m.name.toLowerCase().includes(query));
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400">
+            <i data-lucide="package-search" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+            <p class="text-sm font-semibold text-slate-600">No se encontraron materias primas</p>
+            <p class="text-xs text-slate-400 mt-1">Carga tus insumos para costear automáticamente tus productos.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(mat => {
+        const isLowStock = mat.minStock && mat.stock <= mat.minStock;
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+
+        card.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <h4 class="font-bold text-sm text-slate-900">${mat.name}</h4>
+              ${isLowStock ? '<span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Stock bajo</span>' : ''}
+              ${mat.isSheet || mat.unit === 'hoja' ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"><i data-lucide="file" class="w-3 h-3"></i> ${mat.sheetWidth || 21}x${mat.sheetHeight || 29.7}cm</span>` : ''}
+              ${mat.isFabric || mat.unit === 'tela' ? `<span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1"><i data-lucide="scissors" class="w-3 h-3"></i> Ancho rollo: ${mat.fabricRollWidth || 150}cm</span>` : ''}
+            </div>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-500">
+              <span>Costo: <strong class="text-slate-800">${cur}${mat.unitCost.toFixed(2)}</strong> / ${mat.unit}</span>
+              <span>Comprado: ${mat.purchasedQty} ${mat.unit} por ${cur}${mat.purchasedPrice.toLocaleString('es-AR')}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+            <div class="text-right">
+              <span class="block text-[10px] text-slate-400 font-semibold uppercase">Stock Disponible</span>
+              <span class="text-sm font-extrabold ${isLowStock ? 'text-rose-600' : 'text-slate-800'}">${mat.stock} ${mat.unit}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="quickAdjustMaterialStock('${mat.id}', -1)" title="Restar 1" class="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg active:scale-95 transition-all text-xs font-bold">-</button>
+              <button onclick="quickAdjustMaterialStock('${mat.id}', 1)" title="Sumar 1" class="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg active:scale-95 transition-all text-xs font-bold">+</button>
+              <button onclick="editMaterial('${mat.id}')" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg active:scale-95 transition-all" title="Editar">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteMaterial('${mat.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg active:scale-95 transition-all" title="Eliminar">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    };
+
+    window.toggleMaterialDimensionOptions = function(unitValue) {
+      const sheetSection = document.getElementById('matSheetConfigSection');
+      const fabricSection = document.getElementById('matFabricConfigSection');
+
+      if (unitValue === 'hoja' || unitValue === 'cm2') {
+        sheetSection.classList.remove('hidden');
+        fabricSection.classList.add('hidden');
+        updateSheetAreaPreview();
+      } else if (unitValue === 'tela') {
+        fabricSection.classList.remove('hidden');
+        sheetSection.classList.add('hidden');
+        updateFabricAreaPreview();
+      } else {
+        sheetSection.classList.add('hidden');
+        fabricSection.classList.add('hidden');
+      }
+      lucide.createIcons();
+    };
+
+    window.applyFabricPreset = function(val) {
+      const input = document.getElementById('matFabricRollWidth');
+      if (val !== 'custom') {
+        input.value = val;
+      }
+      updateFabricAreaPreview();
+    };
+
+    window.updateFabricAreaPreview = function() {
+      const rollW = parseFloat(document.getElementById('matFabricRollWidth').value) || 150;
+      const areaCm2 = 100 * rollW;
+      const areaM2 = (areaCm2 / 10000).toFixed(2);
+      const previewEl = document.getElementById('matFabricAreaPreview');
+      if (previewEl) {
+        previewEl.textContent = `${areaCm2.toLocaleString('es-AR')} cm² (${areaM2} m²)`;
+      }
+    };
+
+    window.applySheetPreset = function(preset) {
+      const wInput = document.getElementById('matSheetWidth');
+      const hInput = document.getElementById('matSheetHeight');
+
+      const presets = {
+        a4: { w: 21, h: 29.7 },
+        a3: { w: 29.7, h: 42 },
+        carta: { w: 21.6, h: 27.9 },
+        oficio: { w: 21.6, h: 35.6 },
+        pliego5070: { w: 50, h: 70 },
+        custom: null
+      };
+
+      if (presets[preset]) {
+        wInput.value = presets[preset].w;
+        hInput.value = presets[preset].h;
+      }
+      updateSheetAreaPreview();
+    };
+
+    window.updateSheetAreaPreview = function() {
+      const w = parseFloat(document.getElementById('matSheetWidth').value) || 0;
+      const h = parseFloat(document.getElementById('matSheetHeight').value) || 0;
+      const area = (w * h).toFixed(1);
+      const previewEl = document.getElementById('matSheetAreaPreview');
+      if (previewEl) {
+        previewEl.textContent = `${area} cm²`;
+      }
+    };
+
+    window.openMaterialModal = function(id = null) {
+      const modal = document.getElementById('modalMaterial');
+      const title = document.getElementById('modalMaterialTitle');
+      
+      if (id) {
+        const mat = appState.rawMaterials.find(m => m.id === id);
+        if (!mat) return;
+        title.textContent = 'Editar Materia Prima';
+        document.getElementById('matId').value = mat.id;
+        document.getElementById('matName').value = mat.name;
+        document.getElementById('matUnit').value = mat.unit;
+        document.getElementById('matStock').value = mat.stock;
+        document.getElementById('matPurchasedQty').value = mat.purchasedQty || 1;
+        document.getElementById('matPurchasedPrice').value = mat.purchasedPrice || 0;
+        document.getElementById('matMinStock').value = mat.minStock || 0;
+
+        document.getElementById('matSheetPreset').value = mat.sheetPreset || 'a4';
+        document.getElementById('matSheetWidth').value = mat.sheetWidth || 21;
+        document.getElementById('matSheetHeight').value = mat.sheetHeight || 29.7;
+        
+        document.getElementById('matFabricRollWidth').value = mat.fabricRollWidth || 150;
+        document.getElementById('matFabricPreset').value = [140, 150, 160, 240, 280].includes(mat.fabricRollWidth) ? String(mat.fabricRollWidth) : 'custom';
+
+        toggleMaterialDimensionOptions(mat.unit);
+      } else {
+        title.textContent = 'Agregar Materia Prima';
+        document.getElementById('matId').value = '';
+        document.getElementById('matName').value = '';
+        document.getElementById('matUnit').value = 'g';
+        document.getElementById('matStock').value = 1000;
+        document.getElementById('matPurchasedQty').value = 1000;
+        document.getElementById('matPurchasedPrice').value = 5000;
+        document.getElementById('matMinStock').value = 100;
+
+        document.getElementById('matSheetPreset').value = 'a4';
+        document.getElementById('matSheetWidth').value = 21;
+        document.getElementById('matSheetHeight').value = 29.7;
+        
+        document.getElementById('matFabricRollWidth').value = 150;
+        document.getElementById('matFabricPreset').value = '150';
+
+        toggleMaterialDimensionOptions('g');
+      }
+      
+      updateUnitCostPreview();
+      updateSheetAreaPreview();
+      updateFabricAreaPreview();
+      modal.classList.remove('hidden');
+    };
+
+    window.closeMaterialModal = function() {
+      document.getElementById('modalMaterial').classList.add('hidden');
+    };
+
+    window.updateUnitCostPreview = function() {
+      const qty = parseFloat(document.getElementById('matPurchasedQty').value) || 1;
+      const price = parseFloat(document.getElementById('matPurchasedPrice').value) || 0;
+      const unit = document.getElementById('matUnit').value;
+      const unitCost = price / qty;
+      document.getElementById('matPreviewUnitCost').textContent = `${appState.currency}${unitCost.toFixed(2)} / ${unit}`;
+    };
+
+    window.saveMaterial = function() {
+      const id = document.getElementById('matId').value;
+      const name = document.getElementById('matName').value.trim();
+      const unit = document.getElementById('matUnit').value;
+      const stock = parseFloat(document.getElementById('matStock').value) || 0;
+      const purchasedQty = parseFloat(document.getElementById('matPurchasedQty').value) || 1;
+      const purchasedPrice = parseFloat(document.getElementById('matPurchasedPrice').value) || 0;
+      const minStock = parseFloat(document.getElementById('matMinStock').value) || 0;
+
+      const isSheet = (unit === 'hoja' || unit === 'cm2');
+      const sheetPreset = document.getElementById('matSheetPreset').value;
+      const sheetWidth = parseFloat(document.getElementById('matSheetWidth').value) || 21;
+      const sheetHeight = parseFloat(document.getElementById('matSheetHeight').value) || 29.7;
+
+      const isFabric = (unit === 'tela');
+      const fabricRollWidth = parseFloat(document.getElementById('matFabricRollWidth').value) || 150;
+
+      if (!name) {
+        showToast("Ingresa un nombre para la materia prima", "error");
+        return;
+      }
+
+      const unitCost = purchasedPrice / purchasedQty;
+
+      if (id) {
+        const mat = appState.rawMaterials.find(m => m.id === id);
+        if (mat) {
+          mat.name = name;
+          mat.unit = unit;
+          mat.stock = stock;
+          mat.purchasedQty = purchasedQty;
+          mat.purchasedPrice = purchasedPrice;
+          mat.unitCost = unitCost;
+          mat.minStock = minStock;
+          mat.isSheet = isSheet;
+          mat.sheetPreset = sheetPreset;
+          mat.sheetWidth = sheetWidth;
+          mat.sheetHeight = sheetHeight;
+          mat.isFabric = isFabric;
+          mat.fabricRollWidth = fabricRollWidth;
+        }
+        showToast(`Insumo "${name}" actualizado`, "success");
+      } else {
+        const newMat = {
+          id: 'mat_' + Date.now(),
+          name,
+          unit,
+          stock,
+          purchasedQty,
+          purchasedPrice,
+          unitCost,
+          minStock,
+          isSheet,
+          sheetPreset,
+          sheetWidth,
+          sheetHeight,
+          isFabric,
+          fabricRollWidth
+        };
+        appState.rawMaterials.push(newMat);
+        showToast(`Insumo "${name}" agregado`, "success");
+      }
+
+      saveState();
+      closeMaterialModal();
+      renderMaterialsList();
+      renderRecipeMaterialsList();
+      calculatePrice();
+      updateMetrics();
+    };
+
+    window.editMaterial = function(id) {
+      openMaterialModal(id);
+    };
+
+    window.deleteMaterial = function(id) {
+      const mat = appState.rawMaterials.find(m => m.id === id);
+      if (!mat) return;
+      
+      appState.rawMaterials = appState.rawMaterials.filter(m => m.id !== id);
+      appState.calculatorRecipe = appState.calculatorRecipe.filter(r => r.materialId !== id);
+      
+      saveState();
+      renderMaterialsList();
+      renderRecipeMaterialsList();
+      calculatePrice();
+      updateMetrics();
+      showToast(`Insumo "${mat.name}" eliminado`);
+    };
+
+    window.quickAdjustMaterialStock = function(id, delta) {
+      const mat = appState.rawMaterials.find(m => m.id === id);
+      if (!mat) return;
+      mat.stock = Math.max(0, Math.round((mat.stock + delta) * 100) / 100);
+      saveState();
+      renderMaterialsList();
+      updateMetrics();
+    };
+
+    window.renderProductsList = function() {
+      const container = document.getElementById('productsListContainer');
+      const query = (document.getElementById('searchProductInput')?.value || '').toLowerCase();
+      const cur = appState.currency || '$';
+
+      const filtered = appState.products.filter(p => p.name.toLowerCase().includes(query));
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl p-8 text-center border border-slate-200 text-slate-400">
+            <i data-lucide="package-x" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+            <p class="text-sm font-semibold text-slate-600">No hay productos en catálogo</p>
+            <p class="text-xs text-slate-400 mt-1">Crea productos desde la <strong>Calculadora</strong> o haz clic en "Nuevo producto".</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(p => {
+        const profit = p.suggestedPrice - p.unitCost;
+        const profitMarginPerc = p.suggestedPrice > 0 ? ((profit / p.suggestedPrice) * 100).toFixed(0) : 0;
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-all";
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="font-bold text-sm text-slate-900 leading-tight">${p.name}</h3>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                +${profitMarginPerc}% margen
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 my-3 p-2.5 bg-slate-50 rounded-xl text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-semibold block uppercase">Costo Unit.</span>
+                <span class="font-bold text-slate-700">${cur}${p.unitCost.toLocaleString('es-AR')}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 font-semibold block uppercase">Precio PVP</span>
+                <span class="font-extrabold text-emerald-600 text-sm">${cur}${p.suggestedPrice.toLocaleString('es-AR')}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs px-1 mb-3">
+              <span class="text-slate-500">Stock terminado:</span>
+              <span class="font-black text-sm ${p.stock <= 2 ? 'text-amber-600' : 'text-slate-800'}">${p.stock} u.</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex flex-col gap-1.5">
+            <div class="grid grid-cols-2 gap-1.5">
+              <button onclick="openProduceModal('${p.id}')" class="w-full text-xs font-semibold py-1.5 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center gap-1 transition-colors">
+                <i data-lucide="hammer" class="w-3.5 h-3.5"></i> Fabricar
+              </button>
+              <button onclick="openSaleModal('${p.id}')" class="w-full text-xs font-semibold py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center gap-1 transition-colors">
+                <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Vender
+              </button>
+            </div>
+            
+            <div class="flex items-center justify-between pt-1">
+              <button onclick="loadProductInCalculator('${p.id}')" class="text-[11px] text-slate-500 hover:text-indigo-600 font-medium flex items-center gap-1">
+                <i data-lucide="calculator" class="w-3 h-3"></i> Recalcular
+              </button>
+              <div class="flex items-center gap-1">
+                <button onclick="openProductModal('${p.id}')" class="p-1 text-slate-400 hover:text-indigo-600" title="Editar">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="deleteProduct('${p.id}')" class="p-1 text-slate-400 hover:text-rose-600" title="Eliminar">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    };
+
+    window.openProductModal = function(id = null) {
+      const modal = document.getElementById('modalProduct');
+      const title = document.getElementById('modalProductTitle');
+
+      if (id) {
+        const prod = appState.products.find(p => p.id === id);
+        if (!prod) return;
+        title.textContent = 'Editar Producto';
+        document.getElementById('prodId').value = prod.id;
+        document.getElementById('prodName').value = prod.name;
+        document.getElementById('prodCost').value = prod.unitCost;
+        document.getElementById('prodPrice').value = prod.suggestedPrice;
+        document.getElementById('prodStock').value = prod.stock;
+      } else {
+        title.textContent = 'Nuevo Producto';
+        document.getElementById('prodId').value = '';
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodCost').value = 0;
+        document.getElementById('prodPrice').value = 0;
+        document.getElementById('prodStock').value = 1;
+      }
+
+      previewProductMargin();
+      modal.classList.remove('hidden');
+    };
+
+    window.closeProductModal = function() {
+      document.getElementById('modalProduct').classList.add('hidden');
+    };
+
+    window.previewProductMargin = function() {
+      const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+      const price = parseFloat(document.getElementById('prodPrice').value) || 0;
+      let margin = 0;
+      if (price > 0) {
+        margin = Math.round(((price - cost) / price) * 100);
+      }
+      document.getElementById('prodPreviewMargin').textContent = `${margin}%`;
+    };
+
+    window.saveManualProduct = function() {
+      const id = document.getElementById('prodId').value;
+      const name = document.getElementById('prodName').value.trim();
+      const unitCost = parseFloat(document.getElementById('prodCost').value) || 0;
+      const suggestedPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
+      const stock = parseInt(document.getElementById('prodStock').value) || 0;
+
+      if (!name) {
+        showToast("Ingresa un nombre para el producto", "error");
+        return;
+      }
+
+      if (id) {
+        const p = appState.products.find(x => x.id === id);
+        if (p) {
+          p.name = name;
+          p.unitCost = unitCost;
+          p.suggestedPrice = suggestedPrice;
+          p.stock = stock;
+        }
+        showToast(`Producto "${name}" actualizado`, "success");
+      } else {
+        appState.products.push({
+          id: 'prod_' + Date.now(),
+          name,
+          unitCost,
+          suggestedPrice,
+          stock,
+          recipe: []
+        });
+        showToast(`Producto "${name}" creado`, "success");
+      }
+
+      saveState();
+      closeProductModal();
+      renderProductsList();
+      updateMetrics();
+    };
+
+    window.deleteProduct = function(id) {
+      const p = appState.products.find(x => x.id === id);
+      if (!p) return;
+      appState.products = appState.products.filter(x => x.id !== id);
+      saveState();
+      renderProductsList();
+      updateMetrics();
+      showToast(`Producto "${p.name}" eliminado`);
+    };
+
+    window.loadProductInCalculator = function(id) {
+      const prod = appState.products.find(p => p.id === id);
+      if (!prod) return;
+
+      document.getElementById('calcProductName').value = prod.name;
+      if (prod.recipe && prod.recipe.length > 0) {
+        appState.calculatorRecipe = JSON.parse(JSON.stringify(prod.recipe));
+      }
+      saveState();
+      switchTab('calculator');
+      showToast(`Receta de "${prod.name}" cargada en la calculadora`);
+    };
+
+    window.openProduceModal = function(id) {
+      const prod = appState.products.find(p => p.id === id);
+      if (!prod) return;
+
+      activeProducingProduct = prod;
+      document.getElementById('produceProductName').textContent = prod.name;
+      document.getElementById('produceBatchCount').value = 5;
+      updateProduceRecipePreview();
+      document.getElementById('modalProduce').classList.remove('hidden');
+    };
+
+    window.closeProduceModal = function() {
+      document.getElementById('modalProduce').classList.add('hidden');
+      activeProducingProduct = null;
+    };
+
+    window.updateProduceRecipePreview = function() {
+      if (!activeProducingProduct) return;
+      const count = parseInt(document.getElementById('produceBatchCount').value) || 1;
+      const container = document.getElementById('produceRecipeDetails');
+      const recipe = activeProducingProduct.recipe || [];
+
+      if (recipe.length === 0) {
+        container.innerHTML = `
+          <p class="text-slate-500">Este producto no tiene receta vinculada. Solo sumará las unidades al stock.</p>
+        `;
+        return;
+      }
+
+      let html = `<p class="font-bold text-slate-800 mb-1">Insumos que se descontarán del stock:</p><ul class="space-y-1">`;
+      let canProduce = true;
+
+      recipe.forEach(item => {
+        const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+        if (mat) {
+          const needed = item.quantityUsed * count;
+          const hasEnough = mat.stock >= needed;
+          if (!hasEnough) canProduce = false;
+
+          html += `
+            <li class="flex justify-between items-center text-[11px] ${!hasEnough ? 'text-rose-600 font-bold' : 'text-slate-600'}">
+              <span>• ${mat.name}:</span>
+              <span>${needed.toFixed(2)} ${mat.unit} ${!hasEnough ? `(Stock insuficiente: ${mat.stock} ${mat.unit})` : `(quedan ${(mat.stock - needed).toFixed(2)})`}</span>
+            </li>
+          `;
+        }
+      });
+      html += `</ul>`;
+
+      if (!canProduce) {
+        html += `<p class="mt-2 text-rose-600 font-bold text-[11px]">Advertencia: No tienes suficiente stock de algunos insumos.</p>`;
+      }
+
+      container.innerHTML = html;
+    };
+
+    window.executeProduction = function() {
+      if (!activeProducingProduct) return;
+      const count = parseInt(document.getElementById('produceBatchCount').value) || 1;
+      const recipe = activeProducingProduct.recipe || [];
+
+      recipe.forEach(item => {
+        const mat = appState.rawMaterials.find(m => m.id === item.materialId);
+        if (mat) {
+          const needed = item.quantityUsed * count;
+          mat.stock = Math.max(0, Math.round((mat.stock - needed) * 100) / 100);
+        }
+      });
+
+      activeProducingProduct.stock = (activeProducingProduct.stock || 0) + count;
+
+      saveState();
+      closeProduceModal();
+      renderProductsList();
+      renderMaterialsList();
+      updateMetrics();
+      showToast(`¡Fabricadas ${count} unidades de "${activeProducingProduct.name}"!`, "success");
+    };
+
+    window.openSaleModal = function(id) {
+      const prod = appState.products.find(p => p.id === id);
+      if (!prod) return;
+
+      activeSaleProduct = prod;
+      document.getElementById('saleProductName').textContent = prod.name;
+      document.getElementById('saleUnitsCount').value = 1;
+      document.getElementById('modalSale').classList.remove('hidden');
+    };
+
+    window.closeSaleModal = function() {
+      document.getElementById('modalSale').classList.add('hidden');
+      activeSaleProduct = null;
+    };
+
+    window.confirmSale = function() {
+      if (!activeSaleProduct) return;
+      const count = parseInt(document.getElementById('saleUnitsCount').value) || 1;
+
+      if (activeSaleProduct.stock < count) {
+        showToast(`Stock insuficiente. Solo tienes ${activeSaleProduct.stock} u.`, "error");
+        return;
+      }
+
+      activeSaleProduct.stock -= count;
+      const revenue = count * activeSaleProduct.suggestedPrice;
+
+      saveState();
+      closeSaleModal();
+      renderProductsList();
+      updateMetrics();
+      showToast(`Venta registrada: +${appState.currency}${revenue.toLocaleString('es-AR')}`, "success");
+    };
+
+    window.updateMetrics = function() {
+      const cur = appState.currency || '$';
+
+      const totalRawCost = appState.rawMaterials.reduce((acc, m) => {
+        return acc + (m.stock * m.unitCost);
+      }, 0);
+
+      const totalProductsValuation = appState.products.reduce((acc, p) => {
+        return acc + (p.stock * p.suggestedPrice);
+      }, 0);
+
+      const potentialProfit = appState.products.reduce((acc, p) => {
+        const unitProfit = p.suggestedPrice - p.unitCost;
+        return acc + (p.stock * unitProfit);
+      }, 0);
+
+      document.getElementById('metricRawValue').textContent = `${cur}${Math.round(totalRawCost).toLocaleString('es-AR')}`;
+      document.getElementById('metricProductsValue').textContent = `${cur}${Math.round(totalProductsValuation).toLocaleString('es-AR')}`;
+      document.getElementById('metricPotentialProfit').textContent = `${cur}${Math.round(potentialProfit).toLocaleString('es-AR')}`;
+      document.getElementById('metricTotalCounts').textContent = `${appState.products.length} / ${appState.rawMaterials.length}`;
+    };
+
+    window.copyPriceSummary = function() {
+      const cur = appState.currency || '$';
+      const name = document.getElementById('calcProductName').value.trim() || 'Producto';
+      const pvp = document.getElementById('resSuggestedPrice').textContent;
+      const profit = document.getElementById('resNetProfit').textContent;
+      const totalCost = document.getElementById('resTotalUnitCost').textContent;
+
+      const text = `📊 Resumen de Costos: ${name}
+• Costo Unitario de Producción: ${totalCost}
+• Precio de Venta Sugerido (PVP): ${pvp}
+• Ganancia Neta Estimada: ${profit}
+Calculado con EmprendeCostos PWA.`;
+
+      const tempInput = document.createElement('textarea');
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        showToast("¡Desglose copiado al portapapeles!", "success");
+      } catch (err) {
+        showToast("No se pudo copiar el texto", "error");
+      }
+      document.body.removeChild(tempInput);
+    };
+
+    window.openBackupModal = function() {
+      document.getElementById('modalBackup').classList.remove('hidden');
+    };
+
+    window.closeBackupModal = function() {
+      document.getElementById('modalBackup').classList.add('hidden');
+    };
+
+    window.exportDataJson = function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `emprendecostos_backup_${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Copia de seguridad descargada", "success");
+    };
+
+    window.importDataJson = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && (parsed.rawMaterials || parsed.products)) {
+            appState = parsed;
+            saveState();
+            refreshAllViews();
+            closeBackupModal();
+            showToast("Datos restaurados con éxito", "success");
+          } else {
+            showToast("El archivo JSON no tiene el formato correcto", "error");
+          }
+        } catch(err) {
+          showToast("Error al leer el archivo JSON", "error");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    window.loadSampleData = function() {
+      appState = JSON.parse(JSON.stringify(sampleSeedData));
+      saveState();
+      refreshAllViews();
+      closeBackupModal();
+      showToast("Datos de demostración cargados");
+    };
+
+    window.clearAllData = function() {
+      appState = {
+        currency: '$',
+        rawMaterials: [],
+        products: [],
+        calculatorRecipe: []
+      };
+      saveState();
+      refreshAllViews();
+      closeBackupModal();
+      showToast("Todos los datos fueron reiniciados");
+    };
+
+    /* Run on DOM ready */
+    window.addEventListener('DOMContentLoaded', () => {
+      initApp();
+    });
+  </script>
+</body>
+</html>
