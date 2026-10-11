@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-50">
 <head>
@@ -12,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="EmprendeCostos">
   <meta name="application-name" content="EmprendeCostos">
-  <meta name="description" content="Calculadora de costos reales, catálogo digital, presupuestos y control de stock para emprendedores.">
+  <meta name="description" content="Calculadora de costos reales, catálogo digital con fotos, cotizaciones y control de stock.">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -70,7 +71,7 @@
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 py-2.5 sm:px-6 shadow-sm">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
-        <!-- Brand Logo Icon Container / Custom Logo -->
+        <!-- Brand Logo Icon Container -->
         <div id="brandLogoContainer" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 border border-white/20">
           <img id="headerBrandLogoImg" class="w-full h-full object-cover hidden" alt="Logo">
           <i id="headerBrandLogoDefaultIcon" data-lucide="calculator" class="w-5 h-5"></i>
@@ -102,8 +103,8 @@
           <option value="COP $">COP</option>
         </select>
 
-        <!-- Install PWA Button -->
-        <button id="btnHeaderInstall" onclick="handleInstallClick()" title="Descargar e instalar en celular o PC" class="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition-all active:scale-95">
+        <!-- Install PWA Button (Native App trigger) -->
+        <button id="btnHeaderInstall" onclick="handleInstallClick()" title="Descargar como App Nativa" class="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition-all active:scale-95">
           <i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Descargar App</span>
         </button>
@@ -141,7 +142,7 @@
             Fórmula de Costeo Integral
           </span>
           <h2 class="text-lg sm:text-xl font-bold">Calculadora de Costos & Precios</h2>
-          <p class="text-xs sm:text-sm text-indigo-100">Calcula tu costo unitario, margen deseado y comisiones de venta con precisión.</p>
+          <p class="text-xs sm:text-sm text-indigo-100">Calcula tu costo unitario, margen deseado y comisiones con precisión.</p>
         </div>
         <button onclick="resetCalculatorForm()" class="self-start sm:self-auto text-xs bg-white/10 hover:bg-white/20 active:scale-95 text-white font-medium px-3 py-1.5 rounded-xl border border-white/20 transition-all flex items-center gap-1.5">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
@@ -464,14 +465,14 @@
           <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
             <li><strong>Tu trabajo vale:</strong> La mano de obra debe pagarse a ti mismo como sueldo, no como margen de ganancia.</li>
             <li><strong>Presupuestos profesionales:</strong> Envía presupuestos formales con tu logo por WhatsApp para transmitir seriedad a tus clientes.</li>
-            <li><strong>PWA Instalable:</strong> Puedes pulsar el botón "Descargar App" para usarla como una aplicación nativa en tu celular.</li>
+            <li><strong>Instalación Nativa:</strong> Una vez publicada en Vercel, al pulsar "Descargar App" se instalará como una aplicación independiente con su ícono y sin barras del navegador.</li>
           </ul>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- BOTTOM NAVIGATION (6 TABS ADAPTABLES) -->
+  <!-- BOTTOM NAVIGATION (6 TABS) -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-2">
     <div class="max-w-xl mx-auto grid grid-cols-6 gap-1">
       <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-indigo-600 font-semibold transition-all">
@@ -510,7 +511,7 @@
             <i data-lucide="database" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="font-bold text-base text-slate-900" id="authModalHeaderTitle">Base de Datos & Cuenta</h3>
+            <h3 class="font-bold text-base text-slate-900">Base de Datos & Cuenta</h3>
             <p class="text-[11px] text-slate-500">Guarda tus insumos y recetas en tu usuario</p>
           </div>
         </div>
@@ -596,7 +597,7 @@
             </div>
           </div>
 
-          <button type="submit" id="btnLoginSubmit" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
+          <button type="submit" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
             <i data-lucide="log-in" class="w-4 h-4"></i> Entrar y Cargar mi Base de Datos
           </button>
         </form>
@@ -645,7 +646,7 @@
             </label>
           </div>
 
-          <button type="submit" id="btnRegisterSubmit" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-emerald-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
+          <button type="submit" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-emerald-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Crear Usuario y Activar Base de Datos
           </button>
         </form>
@@ -804,7 +805,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Crear/Editar Producto Terminado Manualmente (con Foto y Descripción) -->
+  <!-- MODAL: Crear/Editar Producto Terminado Manualmente -->
   <div id="modalProduct" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -835,7 +836,7 @@
                 <span>Subir / Sacar foto</span>
                 <input type="file" accept="image/*" onchange="handleProductPhotoUpload(event)" class="hidden">
               </label>
-              <p class="text-[10px] text-slate-400 leading-tight">Optimizado automáticamente para enviar por WhatsApp sin ocupar espacio.</p>
+              <p class="text-[10px] text-slate-400 leading-tight">Optimizado automáticamente para WhatsApp.</p>
             </div>
           </div>
         </div>
@@ -847,7 +848,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción para el Catálogo (opcional)</label>
-          <textarea id="prodDescription" rows="2" placeholder="Detalles, materiales, aroma o medidas para tus clientes..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+          <textarea id="prodDescription" rows="2" placeholder="Detalles, materiales o medidas para tus clientes..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -886,7 +887,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Fabricar / Producir Lote con Descuento Automático de Stock -->
+  <!-- MODAL: Fabricar / Producir Lote -->
   <div id="modalProduce" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -907,9 +908,7 @@
         </div>
       </div>
 
-      <div id="produceRecipeDetails" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
-        <!-- Insumos to be deducted -->
-      </div>
+      <div id="produceRecipeDetails" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2"></div>
 
       <div class="flex gap-2 pt-2">
         <button onclick="closeProduceModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
@@ -1002,9 +1001,7 @@
           </div>
         </div>
 
-        <div id="quoteItemsList" class="space-y-2 pt-1">
-          <!-- Populated by JS -->
-        </div>
+        <div id="quoteItemsList" class="space-y-2 pt-1"></div>
 
         <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
           <span class="font-bold text-slate-600">Total Presupuestado:</span>
@@ -1091,9 +1088,7 @@
                 <th class="py-2 text-right w-24">Subtotal</th>
               </tr>
             </thead>
-            <tbody id="quoteDocItemsBody" class="divide-y divide-slate-100">
-              <!-- Items populated by JS -->
-            </tbody>
+            <tbody id="quoteDocItemsBody" class="divide-y divide-slate-100"></tbody>
             <tfoot>
               <tr class="border-t-2 border-slate-800 text-slate-900 font-bold">
                 <td colspan="3" class="pt-3 text-right text-sm">TOTAL:</td>
@@ -1144,7 +1139,7 @@
               <span>Cargar Logo</span>
               <input type="file" accept="image/*" onchange="handleBrandLogoUpload(event)" class="hidden">
             </label>
-            <p class="text-[10px] text-slate-500 leading-tight">Aparece en la cabecera y en los presupuestos que generes.</p>
+            <p class="text-[10px] text-slate-500 leading-tight">Aparece en la app y en los presupuestos que generes.</p>
           </div>
         </div>
         <div>
@@ -1187,7 +1182,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Instalar en Celular / Compartir Link -->
+  <!-- MODAL: Instalar en Celular / PWA Nativa -->
   <div id="modalShare" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1195,7 +1190,7 @@
           <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
             <i data-lucide="download" class="w-4 h-4"></i>
           </div>
-          <h3 class="font-bold text-base text-slate-900">Instalar en la Pantalla de Inicio</h3>
+          <h3 class="font-bold text-base text-slate-900">Instalar como Aplicación</h3>
         </div>
         <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -1203,11 +1198,11 @@
       </div>
 
       <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600">
-        <button id="tab-btn-ios" onclick="selectInstallPlatform('ios')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
-          iPhone / iPad
-        </button>
         <button id="tab-btn-android" onclick="selectInstallPlatform('android')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
           Android
+        </button>
+        <button id="tab-btn-ios" onclick="selectInstallPlatform('ios')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
+          iPhone / iPad
         </button>
         <button id="tab-btn-pc" onclick="selectInstallPlatform('pc')" class="flex-1 py-1.5 rounded-lg transition-all text-center">
           Computadora
@@ -1215,24 +1210,25 @@
       </div>
 
       <div class="space-y-3 text-xs">
-        <div id="install-guide-ios" class="space-y-2.5">
-          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
-            <strong>En iPhone / Safari:</strong> Toca el botón <strong>Compartir</strong> (cuadrado con flecha hacia arriba) y selecciona <strong>"Agregar al inicio"</strong> (+).
+        <div id="install-guide-android" class="space-y-2.5">
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 leading-relaxed">
+            <strong>Instalación Nativa:</strong> En Android se instalará como una App real en tu menú de aplicaciones, sin barra de navegación ni buscador de Google.
           </div>
+          <button id="btnTriggerAndroidNative" onclick="triggerNativeInstallPrompt()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-100">
+            <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Instalar Aplicación Ahora
+          </button>
+          <p class="text-[11px] text-slate-500">Si no se abre automáticamente, toca los 3 puntos (⋮) de Chrome y pulsa <strong>"Instalar aplicación"</strong>.</p>
         </div>
 
-        <div id="install-guide-android" class="space-y-2.5 hidden">
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-            Toca los tres puntos (⋮) de Google Chrome y pulsa <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.
+        <div id="install-guide-ios" class="space-y-2.5 hidden">
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
+            <strong>En iPhone / Safari:</strong> Toca el botón <strong>Compartir</strong> (ícono cuadrado con flecha hacia arriba) y selecciona <strong>"Agregar al inicio"</strong> (+). Se abrirá con ventana propia sin controles de Safari.
           </div>
-          <button id="btnTriggerAndroidNative" onclick="triggerNativeInstallPrompt()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
-            <i data-lucide="download" class="w-4 h-4"></i> Intentar Instalación Directa
-          </button>
         </div>
 
         <div id="install-guide-pc" class="space-y-2.5 hidden">
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-            En Google Chrome o Edge, haz clic en el ícono de instalar en la barra de direcciones superior.
+            En Google Chrome o Microsoft Edge, haz clic en el ícono de instalar en la barra superior o en el botón "Descargar App" de la cabecera. Se creará una ventana independiente en tu barra de tareas.
           </div>
         </div>
 
@@ -1361,13 +1357,128 @@
       ]
     };
 
-    function createBrandedLogoSvg() {
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-        <rect width="512" height="512" rx="128" fill="#4f46e5"/>
-        <circle cx="256" cy="256" r="180" fill="#4338ca" opacity="0.4"/>
-        <path d="M160 160h192v192H160z" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M256 160v192M160 256h192" stroke="#ffffff" stroke-width="24" stroke-linecap="round"/>
-      </svg>`;
+    /* Generación dinámica de Ícono Nativo PNG de alta fidelidad para Android/iOS/Desktop */
+    function generateAppIconPng(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Rounded gradient background
+      const r = size * 0.22;
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#6366f1');
+      grad.addColorStop(0.5, '#4f46e5');
+      grad.addColorStop(1, '#4338ca');
+      ctx.fillStyle = grad;
+
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(size - r, 0);
+      ctx.quadraticCurveTo(size, 0, size, r);
+      ctx.lineTo(size, size - r);
+      ctx.quadraticCurveTo(size, size, size - r, size);
+      ctx.lineTo(r, size);
+      ctx.quadraticCurveTo(0, size, 0, size - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Calculator graphic drawing
+      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = '#ffffff';
+      ctx.lineWidth = size * 0.055;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Inner box
+      const pad = size * 0.24;
+      const boxW = size - (pad * 2);
+      const boxH = size - (pad * 2);
+      const boxR = size * 0.08;
+
+      ctx.beginPath();
+      ctx.strokeRect(pad, pad, boxW, boxH);
+
+      // Dividing lines
+      ctx.beginPath();
+      ctx.moveTo(pad + (boxW / 2), pad);
+      ctx.lineTo(pad + (boxW / 2), pad + boxH);
+      ctx.moveTo(pad, pad + (boxH / 2));
+      ctx.lineTo(pad + boxW, pad + (boxH / 2));
+      ctx.stroke();
+
+      // Dots/symbols in quadrants
+      const dotRad = size * 0.035;
+      ctx.beginPath();
+      ctx.arc(pad + (boxW * 0.25), pad + (boxH * 0.25), dotRad, 0, Math.PI * 2);
+      ctx.arc(pad + (boxW * 0.75), pad + (boxH * 0.75), dotRad, 0, Math.PI * 2);
+      ctx.fill();
+
+      return canvas.toDataURL('image/png');
+    }
+
+    function setupNativePwaManifest() {
+      const icon192 = generateAppIconPng(192);
+      const icon512 = generateAppIconPng(512);
+
+      // Favicon & Apple Touch Icon
+      let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+      if (!appleIcon) {
+        appleIcon = document.createElement('link');
+        appleIcon.rel = 'apple-touch-icon';
+        document.head.appendChild(appleIcon);
+      }
+      appleIcon.href = icon192;
+
+      let fav = document.querySelector('link[rel="icon"]');
+      if (!fav) {
+        fav = document.createElement('link');
+        fav.rel = 'icon';
+        document.head.appendChild(fav);
+      }
+      fav.href = icon192;
+
+      // Web App Manifest specifying STANDALONE mode
+      const manifest = {
+        name: "EmprendeCostos - Costos, Catálogo y Stock",
+        short_name: "EmprendeCostos",
+        description: "Gestión comercial y cálculo de costos para emprendedores.",
+        start_url: "./",
+        display: "standalone",
+        display_override: ["standalone", "window-controls-overlay"],
+        background_color: "#ffffff",
+        theme_color: "#4f46e5",
+        orientation: "portrait-primary",
+        categories: ["business", "finance", "productivity"],
+        prefer_related_applications: false,
+        icons: [
+          {
+            src: icon192,
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable"
+          },
+          {
+            src: icon512,
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable"
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+
+      let manifestLink = document.querySelector('link[rel="manifest"]');
+      if (!manifestLink) {
+        manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        document.head.appendChild(manifestLink);
+      }
+      manifestLink.href = manifestUrl;
     }
 
     function compressImageFile(file, maxWidth, maxHeight, quality, callback) {
@@ -1402,7 +1513,9 @@
 
     /* Core Initialization */
     function initApp() {
-      // 1. Check active user session
+      setupNativePwaManifest();
+
+      // Check active user session
       const savedSession = sessionStorage.getItem(SESSION_USER_KEY);
       if (savedSession) {
         try {
@@ -1415,7 +1528,6 @@
         loadLocalFallbackData();
       }
 
-      setupPWAAssets();
       refreshAllViews();
       updateAuthUIState();
     }
@@ -1439,7 +1551,6 @@
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
       } catch(e) {}
 
-      // If user logged in, persist to user account store
       if (currentUserAccount) {
         try {
           const accounts = JSON.parse(localStorage.getItem(USERS_DB_KEY) || '{}');
@@ -1599,7 +1710,7 @@
       accounts[rawUser] = {
         username: rawUser,
         displayName: displayName,
-        password: btoa(pass), // Basic encoding for offline browser database
+        password: btoa(pass),
         appState: userState,
         updatedAt: new Date().toISOString()
       };
@@ -1715,7 +1826,7 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    /* TAB SWITCHING */
+    /* TAB NAVIGATION */
     window.switchTab = function(tabId) {
       document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-tab-btn').forEach(btn => {
@@ -1761,7 +1872,6 @@
         if (mat) {
           let qty = parseFloat(item.quantityUsed) || 0;
 
-          // Dimension calculation for paper sheets
           if (item.useDimensions && (mat.isSheet || mat.unit === 'hoja')) {
             const sheetW = parseFloat(mat.sheetWidth) || 21;
             const sheetH = parseFloat(mat.sheetHeight) || 29.7;
@@ -1775,7 +1885,6 @@
             }
           }
 
-          // Dimension calculation for textile
           if (item.useFabricDimensions && (mat.isFabric || mat.unit === 'tela')) {
             const rollW = parseFloat(mat.fabricRollWidth) || 150;
             const rollMeterArea = 100 * rollW;
@@ -3347,21 +3456,7 @@
       showToast("Todos los datos fueron reiniciados");
     };
 
-    /* PWA & COMPARTIR */
-    function setupPWAAssets() {
-      const svgCode = createBrandedLogoSvg();
-      const svgDataUri = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgCode);
-
-      let favicon = document.querySelector('link[rel="icon"]');
-      if (!favicon) {
-        favicon = document.createElement('link');
-        favicon.rel = 'icon';
-        document.head.appendChild(favicon);
-      }
-      favicon.href = svgDataUri;
-      favicon.type = 'image/svg+xml';
-    }
-
+    /* PWA NATIVA & COMPARTIR */
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
@@ -3393,12 +3488,15 @@
     window.handleInstallClick = function() {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       if (isStandalone) {
-        showToast("¡Ya estás usando la aplicación instalada!", "success");
+        showToast("¡Ya estás ejecutando la aplicación instalada!", "success");
         return;
       }
       if (deferredInstallPrompt) {
         deferredInstallPrompt.prompt();
-        deferredInstallPrompt.userChoice.then(() => {
+        deferredInstallPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            showToast("¡Aplicación instalada con éxito!", "success");
+          }
           deferredInstallPrompt = null;
         });
       } else {
@@ -3409,12 +3507,15 @@
     window.triggerNativeInstallPrompt = function() {
       if (deferredInstallPrompt) {
         deferredInstallPrompt.prompt();
-        deferredInstallPrompt.userChoice.then(() => {
+        deferredInstallPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            showToast("¡Aplicación instalada con éxito!", "success");
+            closeShareModal();
+          }
           deferredInstallPrompt = null;
-          closeShareModal();
         });
       } else {
-        showToast("Selecciona 'Agregar a la pantalla principal' en Chrome", "info");
+        showToast("Toca los 3 puntos (⋮) de Chrome y elige 'Instalar aplicación'", "info");
       }
     };
 
@@ -3437,7 +3538,7 @@
     };
 
     window.shareViaWhatsApp = function() {
-      const msg = encodeURIComponent(`¡Hola! Te comparto EmprendeCostos para calcular precios, catálogos y stock: ${window.location.href}`);
+      const msg = encodeURIComponent(`¡Hola! Te comparto EmprendeCostos para calcular precios, catálogos y presupuestos: ${window.location.href}`);
       window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
     };
 
@@ -3474,10 +3575,11 @@
       }, 3000);
     };
 
-    /* DOM Ready Trigger */
+    /* DOM Ready */
     window.addEventListener('DOMContentLoaded', () => {
       initApp();
     });
   </script>
 </body>
 </html>
+```
