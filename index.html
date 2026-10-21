@@ -571,8 +571,81 @@
     </div>
   </div>
 
-  <!-- Auth, Product, Material, Produce, Sale, Print, Backup, Share... -->
-  <!-- (Inyectados directamente en el body para mantener el archivo funcional) -->
+  <!-- MODAL: AUTENTICACIÓN / USUARIOS / BASE DE DATOS -->
+  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="database" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">Nube Firebase</h3>
+            <p class="text-[11px] text-slate-500">Guarda tus datos de forma segura</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- VIEW: Logged In Account Info -->
+      <div id="authViewLoggedIn" class="hidden space-y-4">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-sm" id="userAvatarText">U</div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-sm text-slate-900 truncate" id="accountDisplayName">Mi Emprendimiento</h4>
+            <p class="text-xs text-slate-600 truncate mt-0.5" id="accountUsernameDisplay">@usuario</p>
+          </div>
+        </div>
+        <button onclick="logoutUser()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+        </button>
+      </div>
+
+      <!-- VIEW: Login & Register Tabs -->
+      <div id="authViewGuest" class="space-y-4">
+        <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+          <button id="authTabLoginBtn" onclick="switchAuthSubTab('login')" class="flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition-all text-center">Iniciar Sesión</button>
+          <button id="authTabRegisterBtn" onclick="switchAuthSubTab('register')" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center">Crear Cuenta</button>
+        </div>
+
+        <!-- FORM: LOGIN -->
+        <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Usuario *</label>
+            <input type="text" id="loginUsername" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
+            <input type="password" id="loginPassword" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+          <button type="submit" class="w-full mt-2 bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md text-sm">Entrar y Descargar mis datos</button>
+        </form>
+
+        <!-- FORM: REGISTER -->
+        <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Emprendimiento *</label>
+            <input type="text" id="regDisplayName" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Usuario único *</label>
+            <input type="text" id="regUsername" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
+            <input type="password" id="regPassword" required minlength="4" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          </div>
+          <div class="p-2.5 bg-indigo-50/70 border border-indigo-100 rounded-xl text-[11px] text-indigo-900">
+            <label class="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" id="regIncludeCurrentData" checked class="rounded text-indigo-600 mt-0.5">
+              <span>Guardar en esta cuenta los datos actuales que tengo en pantalla.</span>
+            </label>
+          </div>
+          <button type="submit" class="w-full mt-2 bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md text-sm">Crear y Subir a la nube</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <div id="toastContainer" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-sm"></div>
 
@@ -704,6 +777,126 @@
       if (window.lucide) lucide.createIcons();
     };
 
+    /* ==================================================
+       FUNCIONES DE AUTENTICACION Y NUBE FIREBASE
+       ================================================== */
+    window.openAuthModal = function() {
+      updateAuthUIState();
+      document.getElementById('modalAuth').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    };
+    
+    window.closeAuthModal = function() { 
+      document.getElementById('modalAuth').classList.add('hidden'); 
+    };
+    
+    window.switchAuthSubTab = function(tab) {
+      if (tab === 'login') {
+        document.getElementById('formLogin').classList.remove('hidden');
+        document.getElementById('formRegister').classList.add('hidden');
+        document.getElementById('authTabLoginBtn').className = 'flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm text-center';
+        document.getElementById('authTabRegisterBtn').className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center';
+      } else {
+        document.getElementById('formLogin').classList.add('hidden');
+        document.getElementById('formRegister').classList.remove('hidden');
+        document.getElementById('authTabRegisterBtn').className = 'flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm text-center';
+        document.getElementById('authTabLoginBtn').className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center';
+      }
+    };
+
+    function updateAuthUIState() {
+      const userBtnLabel = document.getElementById('userButtonLabel');
+      const syncIndicator = document.getElementById('syncIndicator');
+      const guestView = document.getElementById('authViewGuest');
+      const loggedView = document.getElementById('authViewLoggedIn');
+      
+      if (currentUserAccount) {
+        if(userBtnLabel) userBtnLabel.textContent = currentUserAccount.displayName;
+        if (syncIndicator) {
+          syncIndicator.classList.remove('hidden');
+          syncIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-emerald-700">Online en Firebase</span>`;
+        }
+        if(guestView) guestView.classList.add('hidden');
+        if(loggedView) loggedView.classList.remove('hidden');
+        if(document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = currentUserAccount.displayName;
+        if(document.getElementById('accountUsernameDisplay')) document.getElementById('accountUsernameDisplay').textContent = `@${currentUserAccount.username}`;
+      } else {
+        if(userBtnLabel) userBtnLabel.textContent = 'Iniciar Sesión';
+        if (syncIndicator) syncIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Modo Local</span>`;
+        if(guestView) guestView.classList.remove('hidden');
+        if(loggedView) loggedView.classList.add('hidden');
+      }
+    }
+
+    window.handleRegisterSubmit = async function(e) {
+      e.preventDefault();
+      const displayName = document.getElementById('regDisplayName').value.trim();
+      const rawUser = document.getElementById('regUsername').value.trim().toLowerCase();
+      const pass = document.getElementById('regPassword').value;
+      const includeData = document.getElementById('regIncludeCurrentData').checked;
+
+      const userState = includeData ? JSON.parse(JSON.stringify(appState)) : { currency: '$', brandName: displayName, rawMaterials: [], products: [], quotations: [], calculatorRecipe: [], clients: [], orders: [], expenses: [] };
+      userState.brandName = displayName;
+
+      currentUserAccount = { username: rawUser, displayName: displayName, password: btoa(pass) };
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+      appState = userState;
+
+      if (db) {
+        try {
+          // Guarda los datos en TU propia base de datos Firebase!
+          const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', rawUser);
+          await setDoc(userRef, { 
+            username: rawUser, 
+            displayName: displayName, 
+            password: btoa(pass), 
+            appState: appState, 
+            updatedAt: new Date().toISOString() 
+          });
+        } catch(err) { console.error("Firebase Auth Error", err); }
+      }
+      
+      saveState(); refreshAllViews(); closeAuthModal(); updateAuthUIState();
+      showToast(`¡Cuenta en la nube creada con éxito!`, "success");
+    };
+
+    window.handleLoginSubmit = async function(e) {
+      e.preventDefault();
+      const rawUser = document.getElementById('loginUsername').value.trim().toLowerCase();
+      const pass = document.getElementById('loginPassword').value;
+      let foundUser = null;
+
+      if (db) {
+        try {
+          showToast("Conectando con Firebase...", "info");
+          const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', rawUser);
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists()) foundUser = docSnap.data();
+        } catch(err) { console.error(err); }
+      }
+
+      if (!foundUser) {
+         showToast("Usuario no encontrado en la nube.", "error"); return;
+      }
+      if (foundUser.password !== btoa(pass)) {
+        showToast("Contraseña incorrecta", "error"); return;
+      }
+
+      currentUserAccount = { username: rawUser, displayName: foundUser.displayName, password: foundUser.password };
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+      appState = foundUser.appState || appState;
+      
+      saveState(); refreshAllViews(); closeAuthModal(); updateAuthUIState();
+      showToast(`¡Datos descargados de la nube correctamente!`, "success");
+    };
+
+    window.logoutUser = function() {
+      sessionStorage.removeItem(SESSION_USER_KEY);
+      currentUserAccount = null;
+      loadLocalFallbackData();
+      saveState(); refreshAllViews(); updateAuthUIState(); closeAuthModal();
+      showToast("Sesión cerrada", "info");
+    };
 
     window.calculatePrice = function() {
       const cur = appState.currency || '$';
