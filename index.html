@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-50">
 <head>
@@ -604,28 +604,46 @@
     let deferredInstallPrompt = null;
 
     /* Configuración Segura de Nube */
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'emprendecostos-v3';
-    let fbConfig = null;
+    const appId = 'emprendecostos-v3';
+    
+    // 👇 REEMPLAZA ESTE BLOQUE CON EL "firebaseConfig" QUE TE DIO FIREBASE 👇
+    const fbConfig = {
+      apiKey: "AIzaSyBDD0Ei8v9qwKe2cUWNy97yzbeWk-xbbkQ",
+      authDomain: "emprendecostos-app.firebaseapp.com",
+      projectId: "emprendecostos-app",
+      storageBucket: "emprendecostos-app.firebasestorage.app",
+      messagingSenderId: "397294711130",
+      appId: "1:397294711130:web:1b562e8bb0c0ddbd264363"
+    };
+    // 👆 ==================================================================== 👆
+
     let db = null;
     let auth = null;
     let fbUser = null;
 
     async function initFirebase() {
-      try {
-        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-          fbConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
-        }
-      } catch(e) { console.warn("Modo offline: sin config de Firebase"); }
+      // Detecta si estás usando tu propio Firebase (Vercel) o el de la IA
+      let finalConfig = null;
+      if (fbConfig && fbConfig.apiKey !== "TU_API_KEY") {
+        finalConfig = fbConfig;
+      } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        finalConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+      }
 
-      if (!fbConfig) return;
+      if (!finalConfig) {
+        console.warn("Modo offline: sin configuración de Firebase detectada.");
+        return;
+      }
 
       try {
-        const app = initializeApp(fbConfig);
+        const app = initializeApp(finalConfig);
         db = getFirestore(app);
         auth = getAuth(app);
+        
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
         } else {
+          // Si estamos en Vercel, iniciamos sesión en tu propia base de datos
           await signInAnonymously(auth);
         }
         fbUser = auth.currentUser;
@@ -1160,3 +1178,4 @@
   </script>
 </body>
 </html>
+```
