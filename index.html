@@ -1286,13 +1286,26 @@
 
     /* Variables de Nube / Firebase */
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'emprendecostos-v2';
-    const fbConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    
+    let fbConfig = null;
+    try {
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        // Soporta tanto si el entorno lo envía como Texto o como Objeto
+        fbConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+      }
+    } catch(e) {
+      console.error("Error al leer la config de la nube", e);
+    }
+    
     let db = null;
     let auth = null;
     let fbUser = null;
 
     async function initFirebase() {
-      if (!fbConfig) return;
+      if (!fbConfig) {
+        console.warn("No se detectó configuración de Firebase. Funcionando en modo local.");
+        return;
+      }
       try {
         const app = initializeApp(fbConfig);
         db = getFirestore(app);
@@ -1734,7 +1747,7 @@
       }
 
       if (!db || !fbUser) {
-        showToast("Conexión a la nube no disponible", "error");
+        showToast("Error: La nube no está activa en este momento. Intenta desde el panel principal.", "error");
         return;
       }
 
@@ -1782,7 +1795,7 @@
       const pass = document.getElementById('loginPassword').value;
 
       if (!db || !fbUser) {
-        showToast("Conexión a la nube no disponible", "error");
+        showToast("Error: La nube no está activa en este entorno.", "error");
         return;
       }
 
