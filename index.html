@@ -3,292 +3,572 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>EmprendeCostos - Calculadora, Catálogo & Gestión</title>
+  <title>EmprendeCostos - Calculadora, Catálogo & Stock</title>
   
+  <!-- PWA & Mobile Web App Meta Tags -->
   <meta name="theme-color" content="#4f46e5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="EmprendeCostos">
+  <meta name="application-name" content="EmprendeCostos">
+  <meta name="description" content="Calculadora de costos reales, catálogo digital con fotos, cotizaciones y control de stock.">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- HTML2PDF para exportar presupuestos y catálogos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    input, textarea, select {
+      user-select: text;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .pulse-dot {
+      animation: pulseAnimation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulseAnimation {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
   </style>
 </head>
-<body class="h-full text-slate-800 flex flex-col justify-between">
+<body class="h-full text-slate-800 flex flex-col justify-between selection:bg-indigo-100 selection:text-indigo-700">
 
   <!-- TOP HEADER -->
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 py-2.5 sm:px-6 shadow-sm">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md">
-          <i data-lucide="calculator" class="w-5 h-5"></i>
+        <!-- Brand Logo Icon Container -->
+        <div id="brandLogoContainer" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 border border-white/20">
+          <img id="headerBrandLogoImg" class="w-full h-full object-cover hidden" alt="Logo">
+          <i id="headerBrandLogoDefaultIcon" data-lucide="calculator" class="w-5 h-5"></i>
         </div>
         <div>
           <div class="flex items-center gap-1.5">
-            <h1 class="text-sm sm:text-base font-bold text-slate-900">EmprendeCostos Pro</h1>
+            <h1 id="headerBrandTitle" class="text-sm sm:text-base font-bold leading-tight text-slate-900 tracking-tight">EmprendeCostos</h1>
             <span id="syncIndicator" class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
-              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Local
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+              <span>Modo Local</span>
             </span>
           </div>
+          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Costos, Catálogo, Presupuestos y Stock</p>
         </div>
       </div>
 
+      <!-- Action items -->
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <button onclick="openAuthModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 rounded-xl shadow-sm">
+        <button id="btnUserAccount" onclick="openAuthModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 rounded-xl shadow-sm shadow-indigo-200 transition-all">
           <i data-lucide="user" class="w-4 h-4"></i>
-          <span id="userButtonLabel">Iniciar Sesión</span>
+          <span id="userButtonLabel" class="max-w-[100px] sm:max-w-[130px] truncate">Iniciar Sesión</span>
+        </button>
+
+        <select id="currencySymbol" onchange="changeCurrency(this.value)" class="text-xs font-semibold bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="$">$ (ARS/USD/MXN)</option>
+          <option value="€">€ (EUR)</option>
+          <option value="S/">S/ (PEN)</option>
+          <option value="CLP $">CLP</option>
+          <option value="COP $">COP</option>
+        </select>
+
+        <button onclick="openBackupModal()" title="Ajustes, Logo y Respaldo" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          <i data-lucide="settings" class="w-5 h-5"></i>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- CLOUD NOTICE BANNER -->
+  <div id="cloudBannerNotice" class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-xs text-indigo-900 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto w-full flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <i data-lucide="cloud" class="w-4 h-4 text-indigo-600 shrink-0"></i>
+        <span id="cloudBannerText">Crea tu usuario para respaldar tus productos, insumos y catálogo en la nube.</span>
+      </div>
+      <button id="cloudBannerAction" onclick="openAuthModal()" class="font-bold underline text-indigo-700 hover:text-indigo-900 shrink-0">
+        Crear cuenta gratis
+      </button>
+    </div>
+  </div>
+
   <main class="flex-1 overflow-y-auto pb-24 max-w-5xl w-full mx-auto p-3 sm:p-5">
 
-    <!-- TAB: CALCULADORA -->
+    <!-- TAB 1: CALCULADORA DE PRECIOS -->
     <section id="view-calculator" class="tab-view block space-y-4">
-      <div class="bg-indigo-600 rounded-2xl p-4 sm:p-5 text-white shadow-lg">
-        <h2 class="text-lg font-bold">Calculadora de Costos & Precios</h2>
-        <p class="text-xs text-indigo-100">Calcula tu costo y margen de ganancia.</p>
+      <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm mb-1">
+            Fórmula de Costeo Integral
+          </span>
+          <h2 class="text-lg sm:text-xl font-bold">Calculadora de Costos & Precios</h2>
+          <p class="text-xs sm:text-sm text-indigo-100">Calcula tu costo unitario, margen deseado y comisiones con precisión.</p>
+        </div>
+        <button onclick="resetCalculatorForm()" class="self-start sm:self-auto text-xs bg-white/10 hover:bg-white/20 active:scale-95 text-white font-medium px-3 py-1.5 rounded-xl border border-white/20 transition-all flex items-center gap-1.5">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          Nueva receta
+        </button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Input Form Section -->
         <div class="lg:col-span-7 space-y-4">
-          <!-- Identificación -->
-          <div class="bg-white rounded-2xl p-4 border shadow-sm">
-            <h3 class="font-bold text-sm mb-3">1. Identificación</h3>
-            <input type="text" id="calcProductName" placeholder="Nombre del producto" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl mb-2">
-            <input type="number" id="calcBatchUnits" value="1" placeholder="Unidades por lote" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
+          <!-- 1. Identificación del Producto -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="tag" class="w-4 h-4 text-indigo-600"></i>
+              1. Identificación del Producto
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre del producto *</label>
+                <input type="text" id="calcProductName" placeholder="Ej. Vela de Soja, Almohadón Tusor..." class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Unidades por lote</label>
+                <input type="number" id="calcBatchUnits" value="1" min="1" step="1" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
           </div>
 
-          <!-- Materias Primas -->
-          <div class="bg-white rounded-2xl p-4 border shadow-sm">
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="font-bold text-sm">2. Receta / Materiales</h3>
-              <button onclick="addMaterialToRecipeRow()" class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-bold">+ Agregar</button>
+          <!-- 2. Insumos y Materias Primas -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                2. Materias Primas del Stock
+              </h3>
+              <button onclick="addMaterialToRecipeRow()" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar insumo
+              </button>
             </div>
-            <div id="recipeMaterialsList" class="space-y-2 mb-2"></div>
-            <div class="text-right text-xs font-bold">Subtotal: <span id="subtotalMaterials">$0.00</span></div>
+            <p class="text-xs text-slate-400">Selecciona insumos de tu inventario. Si usas <strong>hojas A4</strong> o <strong>telas</strong>, puedes fraccionar en centímetros exactos.</p>
+            
+            <div id="recipeMaterialsList" class="space-y-2">
+              <!-- Dynamically populated rows -->
+            </div>
+            
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-medium text-slate-600">
+              <span>Subtotal Materias Primas:</span>
+              <span id="subtotalMaterials" class="font-bold text-slate-900 text-sm">$0.00</span>
+            </div>
           </div>
 
-          <!-- Mano de Obra y Márgenes -->
-          <div class="bg-white rounded-2xl p-4 border shadow-sm grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-xs font-semibold">Minutos de trabajo</label>
-              <input type="number" id="calcLaborMinutes" value="30" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm">
+          <!-- 3. Mano de Obra y Packaging -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+              3. Mano de Obra y Packaging
+            </h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Tiempo (minutos)</label>
+                <input type="number" id="calcLaborMinutes" value="30" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Valor de tu hora</label>
+                <input type="number" id="calcLaborHourlyRate" value="3000" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Packaging extra ($)</label>
+                <input type="number" id="calcPackagingCost" value="0" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
             </div>
-            <div>
-              <label class="text-xs font-semibold">Valor de tu hora ($)</label>
-              <input type="number" id="calcLaborHourlyRate" value="3000" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm">
-            </div>
-            <div>
-              <label class="text-xs font-semibold">Margen Minorista %</label>
-              <input type="number" id="calcProfitMargin" value="50" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm bg-emerald-50">
-            </div>
-            <div>
-              <label class="text-xs font-semibold">Margen Mayorista %</label>
-              <input type="number" id="calcWholesaleMargin" value="30" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm bg-amber-50">
+          </div>
+
+          <!-- 4. Gastos Indirectos y Margen -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <i data-lucide="percent" class="w-4 h-4 text-indigo-600"></i>
+              4. Costos Fijos & Ganancia Deseada
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-600">Costos indirectos</label>
+                  <span class="text-[10px] text-slate-400">Luz, gas, wifi</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcOverheadPerc" value="10" min="0" max="100" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-600">Margen ganancia *</label>
+                  <span class="text-[10px] text-emerald-600 font-bold">Tu beneficio</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcProfitMargin" value="50" min="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                </div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-600">Comisión venta / POS</label>
+                  <span class="text-[10px] text-slate-400">Tarjetas, app</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcPaymentFee" value="6" min="0" max="90" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8">
+                  <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="lg:col-span-5">
-          <div class="bg-white rounded-2xl border shadow-md p-5 sticky top-20">
-            <h3 class="text-xs font-bold text-slate-400 mb-2">PVP Minorista Sugerido</h3>
-            <div class="text-3xl font-black text-emerald-500 mb-4" id="resSuggestedPrice">$0.00</div>
-            
-            <h3 class="text-xs font-bold text-slate-400 mb-1">Precio Mayorista</h3>
-            <div class="text-xl font-bold text-amber-600 mb-4" id="resWholesalePrice">$0.00</div>
+        <!-- Live Calculation Summary Card -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md p-5 sticky top-20">
+            <h3 class="text-xs uppercase tracking-wider font-extrabold text-slate-400 mb-3 flex items-center justify-between">
+              <span>Desglose por Unidad</span>
+            </h3>
 
-            <div class="text-xs space-y-1 pb-4 border-b">
-              <div class="flex justify-between"><span>Costo Total Unitario:</span><span id="resTotalUnitCost" class="font-bold">$0.00</span></div>
+            <!-- Price Highlight -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-xl p-4 mb-4 shadow-inner">
+              <span class="text-xs text-slate-300 font-medium">Precio de Venta Sugerido (PVP):</span>
+              <div class="text-3xl font-extrabold tracking-tight mt-0.5 text-emerald-400" id="resSuggestedPrice">$0.00</div>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800 text-xs text-slate-300">
+                <span>Ganancia Neta Limpia:</span>
+                <span id="resNetProfit" class="font-bold text-emerald-300">$0.00 (0%)</span>
+              </div>
             </div>
-            <button onclick="saveProductFromCalculator()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-2 rounded-xl shadow">Guardar en Catálogo</button>
+
+            <!-- Cost Breakdown List -->
+            <div class="space-y-2 text-xs pb-4 border-b border-slate-100">
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="package" class="w-3.5 h-3.5 text-indigo-500"></i> Materias Primas:</span>
+                <span id="resMaterialCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5 text-indigo-500"></i> Mano de Obra:</span>
+                <span id="resLaborCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="box" class="w-3.5 h-3.5 text-indigo-500"></i> Packaging extra:</span>
+                <span id="resPackagingCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-500"></i> Costos Indirectos:</span>
+                <span id="resOverheadCost" class="font-semibold text-slate-800">$0.00</span>
+              </div>
+              <div class="flex justify-between font-bold text-slate-900 pt-1 text-sm">
+                <span>Costo Total Unitario:</span>
+                <span id="resTotalUnitCost" class="text-indigo-600">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-500 pt-0.5">
+                <span>Comisión de Venta / Pasarela:</span>
+                <span id="resPaymentFeeCost" class="font-semibold text-slate-700">$0.00</span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="pt-4 space-y-2">
+              <button onclick="saveProductFromCalculator()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-2 text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar en Catálogo de Productos
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB: CATÁLOGO -->
+    <!-- TAB 2: CATÁLOGO DE PRODUCTOS -->
     <section id="view-catalog" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center bg-emerald-600 rounded-2xl p-4 text-white shadow">
-        <h2 class="text-lg font-bold">Mi Catálogo</h2>
-        <button onclick="downloadCatalogPDF()" class="text-xs bg-white text-emerald-800 font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1">
-          <i data-lucide="file-down" class="w-4 h-4"></i> PDF
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-emerald-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm mb-1">
+            Vitrina Comercial & Ventas
+          </span>
+          <h2 class="text-lg sm:text-xl font-bold" id="catalogStoreTitle">Catálogo de Productos</h2>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="shareEntireCatalogWhatsApp()" class="text-xs bg-white text-emerald-800 font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            Enviar Catálogo
+          </button>
+          <button onclick="exportCatalogPDF()" class="text-xs bg-emerald-800/60 text-white font-semibold px-3 py-2 rounded-xl border border-white/20 flex items-center gap-1.5">
+            <i data-lucide="file-down" class="w-4 h-4"></i>
+            PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+          <input type="text" id="searchCatalogInput" oninput="renderCatalogView()" placeholder="Buscar en el catálogo..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+      </div>
+
+      <!-- Catalog Cards Grid -->
+      <div id="catalogGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 3: STOCK DE PRODUCTOS TERMINADOS -->
+    <section id="view-products" class="tab-view hidden space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Stock de Productos Terminados</h2>
+          <p class="text-xs text-slate-500">Controla unidades fabricadas y ventas.</p>
+        </div>
+        <button onclick="switchTab('catalog')" class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5">
+          <i data-lucide="store" class="w-4 h-4"></i> Ver Catálogo
         </button>
       </div>
-      <div id="catalogGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
-    </section>
 
-    <!-- TAB: PEDIDOS -->
-    <section id="view-orders" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold">Pedidos</h2>
-        <button onclick="openOrderModal()" class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Nuevo</button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-slate-100 rounded-xl p-3"><h3 class="font-bold mb-2">Pendientes</h3><div id="colOrderPending" class="space-y-2"></div></div>
-        <div class="bg-amber-50 rounded-xl p-3"><h3 class="font-bold mb-2">En Producción</h3><div id="colOrderProducing" class="space-y-2"></div></div>
-        <div class="bg-emerald-50 rounded-xl p-3"><h3 class="font-bold mb-2">Entregados</h3><div id="colOrderDelivered" class="space-y-2"></div></div>
+      <div id="productsListContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Products populated via JS -->
       </div>
     </section>
 
-    <!-- TAB: CLIENTES -->
-    <section id="view-clients" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold">Clientes</h2>
-        <button onclick="openClientModal()" class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Nuevo</button>
-      </div>
-      <div id="clientsListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-    </section>
-
-    <!-- TAB: INSUMOS -->
+    <!-- TAB 4: STOCK DE MATERIA PRIMA -->
     <section id="view-materials" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold">Materia Prima</h2>
-        <button onclick="openMaterialModal()" class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Cargar Insumo</button>
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Stock de Materia Prima</h2>
+          <p class="text-xs text-slate-500">Gestiona tus insumos, medidas (telas, hojas) y existencias.</p>
+        </div>
+        <button onclick="openMaterialModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-2 rounded-xl shadow-sm flex items-center gap-1.5 self-start sm:self-auto">
+          <i data-lucide="plus" class="w-4 h-4"></i> Cargar materia prima
+        </button>
       </div>
-      <div id="materialsListContainer" class="space-y-2"></div>
+
+      <div id="materialsListContainer" class="space-y-2.5">
+        <!-- Materials populated via JS -->
+      </div>
     </section>
 
-    <!-- TAB: STOCK -->
-    <section id="view-products" class="tab-view hidden space-y-4">
-      <h2 class="text-lg font-bold">Stock de Productos</h2>
-      <div id="productsListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-    </section>
+    <!-- TAB 5: RESUMEN / MÉTRICAS -->
+    <section id="view-metrics" class="tab-view hidden space-y-4">
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Resumen del Negocio</h2>
+          <p class="text-xs text-slate-500">Panorama general del valor de tu inventario.</p>
+        </div>
 
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-indigo-700 block mb-0.5">Capital en Insumos</span>
+            <span id="metricRawValue" class="text-base sm:text-xl font-extrabold text-slate-900">$0</span>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3.5">
+            <span class="text-[11px] font-semibold text-emerald-700 block mb-0.5">Valor Stock Productos</span>
+            <span id="metricProductsValue" class="text-base sm:text-xl font-extrabold text-slate-900">$0</span>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- NAVEGACIÓN INFERIOR -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t py-1.5 overflow-x-auto">
-    <div class="max-w-3xl mx-auto flex gap-2 px-3 items-center min-w-max">
-      <button onclick="switchTab('calculator')" class="w-16 flex flex-col items-center text-indigo-600 font-semibold"><i data-lucide="calculator" class="w-5 h-5"></i><span class="text-[9px]">Costos</span></button>
-      <button onclick="switchTab('catalog')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="store" class="w-5 h-5"></i><span class="text-[9px]">Catálogo</span></button>
-      <button onclick="switchTab('orders')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="clipboard-list" class="w-5 h-5"></i><span class="text-[9px]">Pedidos</span></button>
-      <button onclick="switchTab('clients')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="users" class="w-5 h-5"></i><span class="text-[9px]">Clientes</span></button>
-      <button onclick="switchTab('materials')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="boxes" class="w-5 h-5"></i><span class="text-[9px]">Insumos</span></button>
-      <button onclick="switchTab('products')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="package" class="w-5 h-5"></i><span class="text-[9px]">Stock</span></button>
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-2">
+    <div class="max-w-xl mx-auto flex justify-between items-center px-4">
+      <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 text-indigo-600 font-semibold">
+        <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i><span class="text-[10px]">Costos</span>
+      </button>
+      <button onclick="switchTab('catalog')" id="nav-btn-catalog" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 text-slate-500 font-medium">
+        <i data-lucide="store" class="w-5 h-5 mb-0.5"></i><span class="text-[10px]">Catálogo</span>
+      </button>
+      <button onclick="switchTab('products')" id="nav-btn-products" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 text-slate-500 font-medium">
+        <i data-lucide="package" class="w-5 h-5 mb-0.5"></i><span class="text-[10px]">Stock</span>
+      </button>
+      <button onclick="switchTab('materials')" id="nav-btn-materials" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 text-slate-500 font-medium">
+        <i data-lucide="boxes" class="w-5 h-5 mb-0.5"></i><span class="text-[10px]">Insumos</span>
+      </button>
+      <button onclick="switchTab('metrics')" id="nav-btn-metrics" class="nav-tab-btn flex flex-col items-center justify-center py-1.5 text-slate-500 font-medium">
+        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i><span class="text-[10px]">Métricas</span>
+      </button>
     </div>
   </nav>
 
-  <!-- MODALES -->
-
-  <!-- AUTH MODAL -->
-  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl">
-      <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h3 class="font-bold text-lg">Nube / Cuenta</h3>
-        <button onclick="closeAuthModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- MODAL: AUTENTICACIÓN / NUBE -->
+  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-base text-slate-900">Base de Datos en la Nube</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
+      <!-- Logged In -->
       <div id="authViewLoggedIn" class="hidden space-y-4">
-        <p class="font-bold text-center text-indigo-600" id="accountDisplayName"></p>
-        <button onclick="logoutUser()" class="w-full bg-rose-100 text-rose-700 font-bold py-2 rounded-xl">Cerrar Sesión</button>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+          <h4 class="font-bold text-sm text-slate-900" id="accountDisplayName">Usuario</h4>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></span> Sincronizado en la nube
+          </span>
+        </div>
+        <button onclick="logoutUser()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2">
+          <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+        </button>
       </div>
 
-      <div id="authViewGuest">
-        <div class="flex mb-4 bg-slate-100 p-1 rounded-lg text-sm">
-          <button id="authTabLoginBtn" onclick="switchAuthSubTab('login')" class="flex-1 py-1 bg-white shadow rounded text-indigo-600 font-bold">Entrar</button>
-          <button id="authTabRegisterBtn" onclick="switchAuthSubTab('register')" class="flex-1 py-1 text-slate-500 font-bold">Crear</button>
+      <!-- Guest -->
+      <div id="authViewGuest" class="space-y-4">
+        <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+          <button id="authTabLoginBtn" onclick="switchAuthSubTab('login')" class="flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm">Iniciar Sesión</button>
+          <button id="authTabRegisterBtn" onclick="switchAuthSubTab('register')" class="flex-1 py-2 rounded-lg text-slate-600">Crear Cuenta</button>
         </div>
 
         <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3">
-          <input type="text" id="loginUsername" placeholder="Usuario" required class="w-full border p-2 rounded-lg text-sm">
-          <input type="password" id="loginPassword" placeholder="Contraseña" required class="w-full border p-2 rounded-lg text-sm">
-          <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Iniciar Sesión</button>
+          <input type="text" id="loginUsername" required placeholder="Usuario o email" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          <input type="password" id="loginPassword" required placeholder="Contraseña" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm">Entrar a mi cuenta</button>
         </form>
 
         <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
-          <input type="text" id="regDisplayName" placeholder="Nombre Emprendimiento" required class="w-full border p-2 rounded-lg text-sm">
-          <input type="text" id="regUsername" placeholder="Usuario único" required class="w-full border p-2 rounded-lg text-sm">
-          <input type="password" id="regPassword" placeholder="Contraseña" required class="w-full border p-2 rounded-lg text-sm">
-          <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg">Crear Cuenta</button>
+          <input type="text" id="regDisplayName" required placeholder="Nombre de tu Emprendimiento" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          <input type="text" id="regUsername" required placeholder="Crea un usuario (ej. mitienda)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          <input type="password" id="regPassword" required minlength="4" placeholder="Crea una contraseña" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-900">
+            <label class="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" id="regIncludeCurrentData" checked class="rounded mt-0.5">
+              <span>Guardar en esta cuenta los datos actuales que tengo en pantalla.</span>
+            </label>
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-xl text-sm">Crear y Guardar en la Nube</button>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- INSUMOS MODAL -->
-  <div id="modalMaterial" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
-      <div class="flex justify-between items-center mb-2 border-b pb-2">
-        <h3 class="font-bold">Materia Prima</h3>
-        <button onclick="closeMaterialModal()" class="text-slate-400"><i data-lucide="x"></i></button>
+  <!-- MODAL: Crear/Editar Materia Prima (Con Medidas Originales) -->
+  <div id="modalMaterial" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl overflow-y-auto max-h-[90vh] space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 id="modalMaterialTitle" class="font-bold text-base text-slate-900">Agregar Materia Prima</h3>
+        <button onclick="closeMaterialModal()" class="text-slate-400 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <input type="hidden" id="matId">
-      <input type="text" id="matName" placeholder="Nombre insumo" class="w-full border p-2 rounded-lg text-sm">
-      <div class="grid grid-cols-2 gap-2">
-        <select id="matUnit" class="border p-2 rounded-lg text-sm"><option value="g">Gramos</option><option value="u">Unidades</option><option value="ml">Mililitros</option></select>
-        <input type="number" id="matStock" placeholder="Stock" class="border p-2 rounded-lg text-sm">
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div><label class="text-xs text-slate-500">Precio Pagado ($)</label><input type="number" id="matPrice" class="w-full border p-2 rounded-lg text-sm"></div>
-        <div><label class="text-xs text-slate-500">Cant. Comprada</label><input type="number" id="matQty" class="w-full border p-2 rounded-lg text-sm"></div>
-      </div>
-      <button onclick="saveMaterial()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Guardar</button>
-    </div>
-  </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Insumo *</label>
+          <input type="text" id="matName" placeholder="Ej. Cera de Soja, Tela Tusor, Hoja A4..." class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Unidad de Medida *</label>
+            <select id="matUnit" onchange="toggleMaterialDimensionOptions(this.value)" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
+              <option value="g">Gramos (g)</option>
+              <option value="kg">Kilos (kg)</option>
+              <option value="ml">Mililitros (ml)</option>
+              <option value="u">Unidades (u)</option>
+              <option value="tela">Tela / Textil (Metro x ancho)</option>
+              <option value="hoja">Hoja / Papel (A4, A3...)</option>
+              <option value="cm">Centímetros (cm)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Stock Actual</label>
+            <input type="number" id="matStock" value="1000" min="0" step="any" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
+          </div>
+        </div>
 
-  <!-- PEDIDOS MODAL -->
-  <div id="modalOrder" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
-      <div class="flex justify-between items-center mb-2 border-b pb-2">
-        <h3 class="font-bold">Nuevo Pedido</h3>
-        <button onclick="closeOrderModal()" class="text-slate-400"><i data-lucide="x"></i></button>
-      </div>
-      <select id="orderClientId" class="w-full border p-2 rounded-lg text-sm"></select>
-      <div class="border p-2 rounded-lg bg-slate-50">
-        <button onclick="addOrderItemRow()" class="text-xs text-indigo-600 font-bold mb-2">+ Agregar producto</button>
-        <div id="orderItemsList" class="space-y-2"></div>
-      </div>
-      <select id="orderStatus" class="w-full border p-2 rounded-lg text-sm font-bold">
-        <option value="pending">Pendiente</option><option value="producing">Producción</option><option value="delivered">Entregado</option>
-      </select>
-      <button onclick="saveOrder()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Guardar Pedido</button>
-    </div>
-  </div>
+        <!-- TELA CONFIG -->
+        <div id="matFabricConfigSection" class="hidden bg-indigo-50/70 p-3 rounded-xl border border-indigo-200/80 space-y-2.5">
+          <span class="text-[11px] font-bold text-indigo-900">Medidas del Rollo de Tela</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-1">Ancho Estándar</label>
+              <select id="matFabricPreset" onchange="applyFabricPreset(this.value)" class="w-full text-xs px-2 bg-white border rounded">
+                <option value="150">1.50 m (Lienzo, Algodón)</option>
+                <option value="160">1.60 m (Tusor)</option>
+                <option value="280">2.80 m (Doble Ancho)</option>
+                <option value="custom">Personalizado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-1">Ancho exacto (cm)</label>
+              <input type="number" id="matFabricRollWidth" value="150" oninput="updateFabricAreaPreview()" class="w-full text-xs px-2 bg-white border rounded">
+            </div>
+          </div>
+          <div class="text-[11px] font-bold mt-1 text-indigo-700" id="matFabricAreaPreview"></div>
+        </div>
 
-  <!-- CLIENTES MODAL -->
-  <div id="modalClient" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
-      <div class="flex justify-between items-center mb-2 border-b pb-2">
-        <h3 class="font-bold">Cliente</h3>
-        <button onclick="closeClientModal()" class="text-slate-400"><i data-lucide="x"></i></button>
+        <!-- HOJA CONFIG -->
+        <div id="matSheetConfigSection" class="hidden bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2.5">
+          <span class="text-[11px] font-bold text-amber-900">Medidas de la Hoja Base</span>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-1">Formato</label>
+              <select id="matSheetPreset" onchange="applySheetPreset(this.value)" class="w-full text-xs px-1 bg-white border rounded">
+                <option value="a4">A4</option><option value="a3">A3</option><option value="custom">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-1">Ancho(cm)</label>
+              <input type="number" id="matSheetWidth" value="21" oninput="updateSheetAreaPreview()" class="w-full text-xs px-1 bg-white border rounded">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-600 mb-1">Alto(cm)</label>
+              <input type="number" id="matSheetHeight" value="29.7" oninput="updateSheetAreaPreview()" class="w-full text-xs px-1 bg-white border rounded">
+            </div>
+          </div>
+          <div class="text-[11px] font-bold mt-1 text-amber-700" id="matSheetAreaPreview"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Cant. Comprada</label>
+            <input type="number" id="matPurchasedQty" value="1000" min="0.01" step="any" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Precio Total Pagado ($)</label>
+            <input type="number" id="matPurchasedPrice" value="5000" min="0" step="any" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
+          </div>
+        </div>
       </div>
-      <input type="hidden" id="clientId">
-      <input type="text" id="clientName" placeholder="Nombre completo" class="w-full border p-2 rounded-lg text-sm">
-      <input type="text" id="clientPhone" placeholder="Teléfono" class="w-full border p-2 rounded-lg text-sm">
-      <button onclick="saveClient()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Guardar</button>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeMaterialModal()" class="flex-1 px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl">Cancelar</button>
+        <button onclick="saveMaterial()" class="flex-1 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl">Guardar Insumo</button>
+      </div>
     </div>
   </div>
 
   <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2"></div>
 
-  <!-- CORE LOGIC - JS TYPE MODULE PARA FIREBASE -->
+  <!-- SCRIPT MODULAR & FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const LOCAL_STORAGE_KEY = 'emprende_costos_v4_data';
-    const SESSION_USER_KEY = 'emprende_costos_v4_session'; // Ahora persistente
-    const appId = 'emprendecostos-v4';
-
-    // 🚀 TUS DATOS DE FIREBASE AQUÍ
-    const fbConfig = {
+    // Reemplaza esto con los datos de tu propia cuenta de Firebase si quieres que sea TU propia nube
+    const firebaseConfig = {
       apiKey: "AIzaSyBDD0Ei8v9qwKe2cUWNy97yzbeWk-xbbkQ",
       authDomain: "emprendecostos-app.firebaseapp.com",
       projectId: "emprendecostos-app",
@@ -297,52 +577,30 @@
       appId: "1:397294711130:web:1b562e8bb0c0ddbd264363"
     };
 
+    let app, db, auth;
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
+      signInAnonymously(auth).catch(e => console.warn("Error auth anónimo:", e));
+    } catch(e) { console.warn("Firebase config error", e); }
+
+    const LOCAL_STORAGE_KEY = 'emprende_costos_v5_data';
+    const SESSION_USER_KEY = 'emprende_costos_v5_session';
+
     window.appState = {
       currency: '$', brandName: 'Mi Emprendimiento',
-      rawMaterials: [], products: [], calculatorRecipe: [],
-      clients: [], orders: [], expenses: []
+      rawMaterials: [], products: [], calculatorRecipe: []
     };
-
-    let currentUserAccount = null;
-    let activeOrderItems = [];
-    let db, auth;
+    window.currentUserAccount = null;
 
     // INICIALIZACIÓN
-    async function initFirebase() {
-      try {
-        const app = initializeApp(fbConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-        
-        // Log in anónimo para permisos de Firebase
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch(e) { console.error("Firebase Auth Error", e); }
-    }
-
-    // CARGAR DATOS DESDE FIREBASE
-    async function loadAccountData(username) {
-      if (!db) return;
-      try {
-        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', username);
-        const docSnap = await getDoc(userRef);
-        if (docSnap.exists() && docSnap.data().appState) {
-          window.appState = docSnap.data().appState;
-        }
-      } catch(e) { console.error("Fallo lectura nube:", e); }
-    }
-
     async function initApp() {
-      await initFirebase();
-      // Leemos de localStorage para que no se borre en móviles al cerrar la app
       const savedSession = localStorage.getItem(SESSION_USER_KEY);
       if (savedSession) {
         try {
-          currentUserAccount = JSON.parse(savedSession);
-          await loadAccountData(currentUserAccount.username);
+          window.currentUserAccount = JSON.parse(savedSession);
+          await loadAccountData(window.currentUserAccount.username);
         } catch(e) {}
       } else {
         const local = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -352,44 +610,56 @@
       updateAuthUIState();
     }
 
-    // GUARDAR DATOS (LOCAL Y NUBE)
+    async function loadAccountData(username) {
+      if (!db) return;
+      try {
+        const docSnap = await getDoc(doc(db, 'users', username));
+        if (docSnap.exists() && docSnap.data().appState) {
+          window.appState = docSnap.data().appState;
+        }
+      } catch(e) { console.log("Cargando modo local..."); }
+    }
+
     window.saveState = async function() {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.appState));
-      if (currentUserAccount && db && auth.currentUser) {
+      if (window.currentUserAccount && db) {
         try {
-          const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', currentUserAccount.username);
-          await updateDoc(userRef, { appState: window.appState, updatedAt: new Date().toISOString() });
+          await updateDoc(doc(db, 'users', window.currentUserAccount.username), { 
+            appState: window.appState, updatedAt: new Date().toISOString() 
+          });
         } catch(e) {}
       }
     };
 
-    // ==========================================
-    // EXPOSICIÓN DE FUNCIONES AL WINDOW (HTML)
-    // ==========================================
+    function refreshAllViews() {
+      document.getElementById('currencySymbol').value = window.appState.currency || '$';
+      window.renderRecipeMaterialsList();
+      window.calculatePrice();
+      window.renderCatalogView();
+      window.renderProductsList();
+      window.renderMaterialsList();
+      window.updateMetrics();
+      if(window.lucide) lucide.createIcons();
+    }
+
     window.showToast = function(msg, type='info') {
       const c = document.getElementById('toastContainer');
       const t = document.createElement('div');
-      t.className = `px-4 py-2 rounded text-white text-sm font-bold shadow ${type==='error'?'bg-rose-600':'bg-emerald-600'}`;
+      t.className = `px-4 py-2 rounded-xl text-white text-sm font-bold shadow-lg ${type==='error'?'bg-rose-600':'bg-emerald-600'}`;
       t.textContent = msg;
       c.appendChild(t);
       setTimeout(()=>t.remove(), 2500);
     };
 
-    window.switchTab = function(tab) {
-      document.querySelectorAll('.tab-view').forEach(e => e.classList.add('hidden'));
-      document.getElementById(`view-${tab}`).classList.remove('hidden');
+    window.switchTab = function(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.classList.remove('text-indigo-600', 'font-semibold');
+        btn.classList.add('text-slate-500', 'font-medium');
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`nav-btn-${tabId}`).classList.add('text-indigo-600', 'font-semibold');
     };
-
-    function refreshAllViews() {
-      renderRecipeMaterialsList();
-      window.calculatePrice();
-      renderCatalogView();
-      renderMaterialsList();
-      renderProductsList();
-      renderClientsList();
-      renderOrdersList();
-      if(window.lucide) lucide.createIcons();
-    }
 
     // AUTH / LOGIN
     window.openAuthModal = () => document.getElementById('modalAuth').classList.remove('hidden');
@@ -402,15 +672,15 @@
     function updateAuthUIState() {
       const btn = document.getElementById('userButtonLabel');
       const ind = document.getElementById('syncIndicator');
-      if (currentUserAccount) {
-        btn.textContent = currentUserAccount.displayName;
-        ind.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Nube`;
+      if (window.currentUserAccount) {
+        btn.textContent = window.currentUserAccount.displayName;
+        if(ind) ind.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Nube`;
         document.getElementById('authViewLoggedIn').classList.remove('hidden');
         document.getElementById('authViewGuest').classList.add('hidden');
-        document.getElementById('accountDisplayName').textContent = currentUserAccount.displayName;
+        document.getElementById('accountDisplayName').textContent = window.currentUserAccount.displayName;
       } else {
         btn.textContent = 'Iniciar Sesión';
-        ind.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Local`;
+        if(ind) ind.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Local`;
         document.getElementById('authViewLoggedIn').classList.add('hidden');
         document.getElementById('authViewGuest').classList.remove('hidden');
       }
@@ -421,14 +691,16 @@
       const u = document.getElementById('regUsername').value.toLowerCase();
       const d = document.getElementById('regDisplayName').value;
       const p = document.getElementById('regPassword').value;
-      
-      currentUserAccount = { username: u, displayName: d, password: btoa(p) };
-      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+      if (!db) return window.showToast("Error conectando a Firebase", "error");
 
-      if (db) {
-        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', u);
-        await setDoc(userRef, { username: u, displayName: d, password: btoa(p), appState: window.appState });
-      }
+      const userRef = doc(db, 'users', u);
+      const snap = await getDoc(userRef);
+      if(snap.exists()){ return window.showToast("El usuario ya existe, inicia sesión", "error"); }
+
+      window.currentUserAccount = { username: u, displayName: d };
+      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(window.currentUserAccount));
+      await setDoc(userRef, { username: u, displayName: d, password: btoa(p), appState: window.appState });
+      
       window.showToast("Cuenta creada en la nube", "success");
       window.closeAuthModal(); updateAuthUIState(); window.saveState();
     };
@@ -437,191 +709,211 @@
       e.preventDefault();
       const u = document.getElementById('loginUsername').value.toLowerCase();
       const p = document.getElementById('loginPassword').value;
+      if (!db) return;
       
-      if (!db) return window.showToast("Error de conexión", "error");
-      
-      const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', u);
-      const docSnap = await getDoc(userRef);
-      
-      if (!docSnap.exists() || docSnap.data().password !== btoa(p)) {
+      const snap = await getDoc(doc(db, 'users', u));
+      if (!snap.exists() || snap.data().password !== btoa(p)) {
         return window.showToast("Credenciales incorrectas", "error");
       }
       
-      window.appState = docSnap.data().appState;
-      currentUserAccount = { username: u, displayName: docSnap.data().displayName };
-      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+      window.appState = snap.data().appState;
+      window.currentUserAccount = { username: u, displayName: snap.data().displayName };
+      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(window.currentUserAccount));
       
-      window.showToast("Datos sincronizados", "success");
+      window.showToast("Datos sincronizados de la nube", "success");
       window.closeAuthModal(); updateAuthUIState(); refreshAllViews();
     };
 
     window.logoutUser = function() {
       localStorage.removeItem(SESSION_USER_KEY);
-      currentUserAccount = null;
-      window.appState = { currency: '$', rawMaterials: [], products: [], calculatorRecipe: [], clients: [], orders: [] };
-      window.closeAuthModal(); updateAuthUIState(); refreshAllViews();
+      window.currentUserAccount = null;
+      window.closeAuthModal(); updateAuthUIState();
     };
 
-    // CALCULADORA
+    // CALCULADORA AVANZADA
+    window.calculatePrice = function() {
+      const cur = window.appState.currency;
+      const batchUnits = parseFloat(document.getElementById('calcBatchUnits').value) || 1;
+      
+      let totalBatchMaterialsCost = 0;
+      window.appState.calculatorRecipe.forEach(item => {
+        const mat = window.appState.rawMaterials.find(m => m.id === item.materialId);
+        if (mat) {
+          let qty = parseFloat(item.quantityUsed) || 0;
+
+          // Fraccionamiento Hoja
+          if (item.useDimensions && (mat.isSheet || mat.unit === 'hoja')) {
+            const sheetArea = (parseFloat(mat.sheetWidth)||21) * (parseFloat(mat.sheetHeight)||29.7);
+            const usedArea = (parseFloat(item.dimWidth)||0) * (parseFloat(item.dimHeight)||0) * (parseFloat(item.dimCuts)||1);
+            if(sheetArea>0) qty = usedArea / sheetArea;
+          }
+          // Fraccionamiento Tela
+          if (item.useFabricDimensions && (mat.isFabric || mat.unit === 'tela')) {
+            const rollMeterArea = 100 * (parseFloat(mat.fabricRollWidth)||150);
+            const netArea = (parseFloat(item.fabricCutWidth)||0) * (parseFloat(item.fabricCutHeight)||0) * (parseFloat(item.fabricCuts)||1) * (1 + ((parseFloat(item.fabricWastePerc)||0)/100));
+            if(rollMeterArea>0) qty = netArea / rollMeterArea;
+          }
+          item.quantityUsed = qty; // guardar para update
+          totalBatchMaterialsCost += qty * mat.unitCost;
+        }
+      });
+
+      const unitMaterialsCost = totalBatchMaterialsCost / batchUnits;
+      const unitLaborCost = ((parseFloat(document.getElementById('calcLaborMinutes').value)||0)/60 * (parseFloat(document.getElementById('calcLaborHourlyRate').value)||0)) / batchUnits;
+      const packagingCost = parseFloat(document.getElementById('calcPackagingCost').value) || 0;
+      
+      const directUnitCost = unitMaterialsCost + unitLaborCost + packagingCost;
+      const unitOverheadCost = directUnitCost * ((parseFloat(document.getElementById('calcOverheadPerc').value)||0)/100);
+      const totalUnitCost = directUnitCost + unitOverheadCost;
+
+      const priceBeforeFees = totalUnitCost * (1 + ((parseFloat(document.getElementById('calcProfitMargin').value)||0)/100));
+      const paymentFeePerc = (parseFloat(document.getElementById('calcPaymentFee').value)||0)/100;
+      
+      let finalSuggestedPrice = priceBeforeFees;
+      if (paymentFeePerc > 0 && paymentFeePerc < 0.95) finalSuggestedPrice = priceBeforeFees / (1 - paymentFeePerc);
+      
+      const feeAmount = finalSuggestedPrice - priceBeforeFees;
+      const netProfitUnit = priceBeforeFees - totalUnitCost;
+
+      document.getElementById('subtotalMaterials').textContent = `${cur}${totalBatchMaterialsCost.toFixed(2)}`;
+      document.getElementById('resSuggestedPrice').textContent = `${cur}${finalSuggestedPrice.toFixed(2)}`;
+      document.getElementById('resTotalUnitCost').textContent = `${cur}${totalUnitCost.toFixed(2)}`;
+      document.getElementById('resNetProfit').textContent = `${cur}${netProfitUnit.toFixed(2)}`;
+      document.getElementById('resMaterialCost').textContent = `${cur}${unitMaterialsCost.toFixed(2)}`;
+      document.getElementById('resLaborCost').textContent = `${cur}${unitLaborCost.toFixed(2)}`;
+      document.getElementById('resPackagingCost').textContent = `${cur}${packagingCost.toFixed(2)}`;
+      document.getElementById('resOverheadCost').textContent = `${cur}${unitOverheadCost.toFixed(2)}`;
+      document.getElementById('resPaymentFeeCost').textContent = `${cur}${feeAmount.toFixed(2)}`;
+
+      return { unitCost: totalUnitCost, suggestedPrice: finalSuggestedPrice };
+    };
+
+    window.renderRecipeMaterialsList = function() {
+      const container = document.getElementById('recipeMaterialsList');
+      container.innerHTML = window.appState.calculatorRecipe.map((item, index) => {
+        const mat = window.appState.rawMaterials.find(m => m.id === item.materialId) || window.appState.rawMaterials[0];
+        const isSheet = mat.isSheet || mat.unit === 'hoja';
+        const isFabric = mat.isFabric || mat.unit === 'tela';
+        
+        let dimHtml = '';
+        if (isSheet && item.useDimensions) {
+          dimHtml = `<div class="grid grid-cols-3 gap-2 mt-2 bg-white p-2 rounded text-xs"><input type="number" value="${item.dimWidth||21}" oninput="updateRecipeDim(${index}, 'dimWidth', this.value)" placeholder="Ancho cm" class="border p-1"><input type="number" value="${item.dimHeight||14}" oninput="updateRecipeDim(${index}, 'dimHeight', this.value)" placeholder="Alto cm" class="border p-1"><input type="number" value="${item.dimCuts||1}" oninput="updateRecipeDim(${index}, 'dimCuts', this.value)" placeholder="Cortes" class="border p-1"></div>`;
+        }
+        if (isFabric && item.useFabricDimensions) {
+          dimHtml = `<div class="grid grid-cols-4 gap-1 mt-2 bg-white p-2 rounded text-[10px]"><input type="number" value="${item.fabricCutWidth||40}" oninput="updateRecipeDim(${index}, 'fabricCutWidth', this.value)" placeholder="Ancho" class="border p-1"><input type="number" value="${item.fabricCutHeight||40}" oninput="updateRecipeDim(${index}, 'fabricCutHeight', this.value)" placeholder="Largo" class="border p-1"><input type="number" value="${item.fabricCuts||1}" oninput="updateRecipeDim(${index}, 'fabricCuts', this.value)" placeholder="Piezas" class="border p-1"><input type="number" value="${item.fabricWastePerc||5}" oninput="updateRecipeDim(${index}, 'fabricWastePerc', this.value)" placeholder="Merma%" class="border p-1"></div>`;
+        }
+
+        const opts = window.appState.rawMaterials.map(m => `<option value="${m.id}" ${m.id===mat.id?'selected':''}>${m.name} ($${m.unitCost.toFixed(2)})</option>`).join('');
+        return `<div class="bg-slate-50 p-2 rounded-xl border border-slate-200 mb-2"><div class="flex gap-2 text-sm"><select onchange="updateRecipeMat(${index}, this.value)" class="flex-1 border p-1 rounded-lg">${opts}</select><input type="number" value="${item.quantityUsed||1}" oninput="updateRecipeQty(${index}, this.value)" class="w-16 border p-1 rounded-lg text-center font-bold" ${(item.useDimensions||item.useFabricDimensions)?'disabled':''}><button onclick="removeRecipeMat(${index})" class="text-rose-500">x</button></div>
+        <div class="mt-1 flex gap-2 text-[10px]">
+          ${isSheet?`<button onclick="toggleDim(${index}, 'useDimensions')" class="text-indigo-600 underline">Fraccionar Hoja (cm)</button>`:''}
+          ${isFabric?`<button onclick="toggleDim(${index}, 'useFabricDimensions')" class="text-indigo-600 underline">Fraccionar Tela (cm)</button>`:''}
+        </div>${dimHtml}</div>`;
+      }).join('');
+    };
+
     window.addMaterialToRecipeRow = function() {
       if(window.appState.rawMaterials.length===0) return window.showToast("Carga insumos primero", "error");
-      window.appState.calculatorRecipe.push({ materialId: window.appState.rawMaterials[0].id, qty: 1 });
-      renderRecipeMaterialsList(); window.calculatePrice(); window.saveState();
+      const f = window.appState.rawMaterials[0];
+      window.appState.calculatorRecipe.push({ materialId: f.id, quantityUsed: 1, useDimensions: (f.unit==='hoja'), useFabricDimensions: (f.unit==='tela') });
+      window.renderRecipeMaterialsList(); window.calculatePrice(); window.saveState();
     };
 
-    window.updateRecipeMat = (idx, val) => { window.appState.calculatorRecipe[idx].materialId = val; window.calculatePrice(); window.saveState(); };
-    window.updateRecipeQty = (idx, val) => { window.appState.calculatorRecipe[idx].qty = parseFloat(val)||0; window.calculatePrice(); window.saveState(); };
-    window.removeRecipeMat = (idx) => { window.appState.calculatorRecipe.splice(idx,1); renderRecipeMaterialsList(); window.calculatePrice(); window.saveState(); };
-
-    function renderRecipeMaterialsList() {
-      const c = document.getElementById('recipeMaterialsList');
-      c.innerHTML = window.appState.calculatorRecipe.map((it, i) => {
-        const mat = window.appState.rawMaterials.find(m => m.id === it.materialId) || window.appState.rawMaterials[0];
-        const opts = window.appState.rawMaterials.map(m => `<option value="${m.id}" ${m.id===it.materialId?'selected':''}>${m.name} ($${m.unitCost.toFixed(2)})</option>`).join('');
-        return `<div class="flex gap-2 text-sm"><select onchange="updateRecipeMat(${i}, this.value)" class="flex-1 border p-1 rounded">${opts}</select><input type="number" value="${it.qty}" oninput="updateRecipeQty(${i}, this.value)" class="w-16 border p-1 rounded text-center"><button onclick="removeRecipeMat(${i})" class="text-rose-500">x</button></div>`;
-      }).join('');
-    }
-
-    window.calculatePrice = function() {
-      let costMat = 0;
-      window.appState.calculatorRecipe.forEach(it => {
-        const m = window.appState.rawMaterials.find(x => x.id === it.materialId);
-        if(m) costMat += it.qty * m.unitCost;
-      });
-      document.getElementById('subtotalMaterials').textContent = `$${costMat.toFixed(2)}`;
-
-      const labMin = parseFloat(document.getElementById('calcLaborMinutes').value)||0;
-      const labHr = parseFloat(document.getElementById('calcLaborHourlyRate').value)||0;
-      const units = parseFloat(document.getElementById('calcBatchUnits').value)||1;
-      const labCost = ((labMin/60)*labHr)/units;
-      const unitMat = costMat/units;
-      const totalCost = unitMat + labCost;
-
-      const pMinorista = parseFloat(document.getElementById('calcProfitMargin').value)||0;
-      const pMayorista = parseFloat(document.getElementById('calcWholesaleMargin').value)||0;
-
-      const minorista = totalCost * (1 + (pMinorista/100));
-      const mayorista = totalCost * (1 + (pMayorista/100));
-
-      document.getElementById('resTotalUnitCost').textContent = `$${totalCost.toFixed(2)}`;
-      document.getElementById('resSuggestedPrice').textContent = `$${minorista.toFixed(2)}`;
-      document.getElementById('resWholesalePrice').textContent = `$${mayorista.toFixed(2)}`;
-      return { cost: totalCost, min: minorista, may: mayorista };
-    };
+    window.updateRecipeMat = (i, v) => { window.appState.calculatorRecipe[i].materialId = v; window.renderRecipeMaterialsList(); window.calculatePrice(); window.saveState(); };
+    window.updateRecipeQty = (i, v) => { window.appState.calculatorRecipe[i].quantityUsed = parseFloat(v)||0; window.calculatePrice(); window.saveState(); };
+    window.removeRecipeMat = (i) => { window.appState.calculatorRecipe.splice(i,1); window.renderRecipeMaterialsList(); window.calculatePrice(); window.saveState(); };
+    window.toggleDim = (i, key) => { window.appState.calculatorRecipe[i][key] = !window.appState.calculatorRecipe[i][key]; window.renderRecipeMaterialsList(); window.calculatePrice(); window.saveState(); };
+    window.updateRecipeDim = (i, key, v) => { window.appState.calculatorRecipe[i][key] = parseFloat(v)||0; window.calculatePrice(); window.saveState(); };
 
     window.saveProductFromCalculator = function() {
       const name = document.getElementById('calcProductName').value;
-      if(!name) return window.showToast("Ponle nombre al producto", "error");
-      const { cost, min, may } = window.calculatePrice();
-      window.appState.products.push({ id: 'prod_'+Date.now(), name, cost, price: min, wholesale: may, stock: 0 });
-      window.saveState(); window.showToast("Producto guardado", "success"); refreshAllViews();
+      if(!name) return window.showToast("Falta nombre", "error");
+      const { unitCost, suggestedPrice } = window.calculatePrice();
+      window.appState.products.push({ id:'prod_'+Date.now(), name, unitCost, suggestedPrice, stock:0, recipe:[...window.appState.calculatorRecipe] });
+      window.saveState(); window.showToast("Guardado", "success"); refreshAllViews();
     };
 
-    // INSUMOS
+    // INSUMOS (CON MEDIDAS)
     window.openMaterialModal = () => { document.getElementById('matId').value=''; document.getElementById('modalMaterial').classList.remove('hidden'); };
     window.closeMaterialModal = () => document.getElementById('modalMaterial').classList.add('hidden');
+    
+    window.toggleMaterialDimensionOptions = function(u) {
+      document.getElementById('matFabricConfigSection').classList.toggle('hidden', u!=='tela');
+      document.getElementById('matSheetConfigSection').classList.toggle('hidden', u!=='hoja');
+    };
+    
+    window.applyFabricPreset = v => { if(v!=='custom') document.getElementById('matFabricRollWidth').value=v; window.updateFabricAreaPreview(); };
+    window.applySheetPreset = v => { 
+      const p = {a4:{w:21,h:29.7}, a3:{w:29.7,h:42}}; 
+      if(p[v]){ document.getElementById('matSheetWidth').value=p[v].w; document.getElementById('matSheetHeight').value=p[v].h; }
+    };
+    window.updateFabricAreaPreview = () => document.getElementById('matFabricAreaPreview').textContent = `Área: ${100*(parseFloat(document.getElementById('matFabricRollWidth').value)||150)} cm² x metro`;
+    window.updateSheetAreaPreview = () => document.getElementById('matSheetAreaPreview').textContent = `Área: ${(parseFloat(document.getElementById('matSheetWidth').value)||21)*(parseFloat(document.getElementById('matSheetHeight').value)||29.7)} cm² x hoja`;
+
     window.saveMaterial = function() {
+      const id = document.getElementById('matId').value;
       const name = document.getElementById('matName').value;
-      const price = parseFloat(document.getElementById('matPrice').value)||0;
-      const qty = parseFloat(document.getElementById('matQty').value)||1;
       if(!name) return;
-      window.appState.rawMaterials.push({ id:'mat_'+Date.now(), name, unit: document.getElementById('matUnit').value, stock: parseFloat(document.getElementById('matStock').value)||0, unitCost: price/qty });
-      window.saveState(); window.closeMaterialModal(); refreshAllViews(); window.showToast("Insumo guardado", "success");
+      
+      const pQty = parseFloat(document.getElementById('matPurchasedQty').value)||1;
+      const pPrice = parseFloat(document.getElementById('matPurchasedPrice').value)||0;
+      
+      const m = {
+        id: id || 'mat_'+Date.now(), name,
+        unit: document.getElementById('matUnit').value,
+        stock: parseFloat(document.getElementById('matStock').value)||0,
+        unitCost: pPrice/pQty, purchasedQty: pQty, purchasedPrice: pPrice,
+        isFabric: document.getElementById('matUnit').value==='tela',
+        fabricRollWidth: parseFloat(document.getElementById('matFabricRollWidth').value)||150,
+        isSheet: document.getElementById('matUnit').value==='hoja',
+        sheetWidth: parseFloat(document.getElementById('matSheetWidth').value)||21,
+        sheetHeight: parseFloat(document.getElementById('matSheetHeight').value)||29.7
+      };
+      
+      if(id) { const i = window.appState.rawMaterials.findIndex(x=>x.id===id); window.appState.rawMaterials[i] = m; }
+      else window.appState.rawMaterials.push(m);
+      
+      window.saveState(); window.closeMaterialModal(); refreshAllViews();
     };
 
-    function renderMaterialsList() {
-      const c = document.getElementById('materialsListContainer');
-      c.innerHTML = window.appState.rawMaterials.map(m => `<div class="bg-white p-3 rounded-lg border shadow-sm flex justify-between"><div><p class="font-bold text-sm">${m.name}</p><p class="text-xs text-slate-500">Costo: $${m.unitCost.toFixed(2)} / ${m.unit}</p></div><div class="text-right font-bold text-sm">${m.stock} ${m.unit}</div></div>`).join('');
-    }
+    window.renderMaterialsList = function() {
+      document.getElementById('materialsListContainer').innerHTML = window.appState.rawMaterials.map(m => `
+        <div class="bg-white p-3 rounded-xl shadow-sm border text-sm flex justify-between">
+          <div><p class="font-bold">${m.name}</p><p class="text-xs text-slate-500">Costo: ${window.appState.currency}${m.unitCost.toFixed(2)} / ${m.unit}</p>
+          ${m.isFabric?`<p class="text-[10px] text-indigo-500">Ancho: ${m.fabricRollWidth}cm</p>`:''}
+          ${m.isSheet?`<p class="text-[10px] text-amber-500">Hoja: ${m.sheetWidth}x${m.sheetHeight}cm</p>`:''}</div>
+          <div class="text-right font-black">${m.stock} ${m.unit}</div>
+        </div>
+      `).join('');
+    };
 
-    // PRODUCTOS & CATALOGO
-    function renderProductsList() {
-      const c = document.getElementById('productsListContainer');
-      c.innerHTML = window.appState.products.map(p => `<div class="bg-white p-3 rounded-lg border shadow-sm">
-        <h4 class="font-bold">${p.name}</h4><div class="flex justify-between text-xs mt-2"><span class="text-slate-500">Costo: $${p.cost?.toFixed(2)}</span><span class="font-bold text-emerald-600">PVP: $${p.price?.toFixed(2)}</span></div>
-      </div>`).join('');
-    }
+    // STOCK & CATÁLOGO
+    window.renderProductsList = function() {
+      document.getElementById('productsListContainer').innerHTML = window.appState.products.map(p => `
+        <div class="bg-white p-3 rounded-xl border shadow-sm">
+          <h4 class="font-bold">${p.name}</h4><div class="flex justify-between text-xs mt-2"><span class="text-slate-500">Costo: ${window.appState.currency}${p.unitCost.toFixed(2)}</span><span class="font-bold text-emerald-600">PVP: ${window.appState.currency}${p.suggestedPrice.toFixed(2)}</span></div>
+          <div class="mt-2 text-xs font-bold text-right text-indigo-700">Stock: ${p.stock}</div>
+        </div>`).join('');
+    };
 
-    function renderCatalogView() {
-      const c = document.getElementById('catalogGridContainer');
-      c.innerHTML = window.appState.products.map(p => `<div class="bg-white p-4 rounded-xl border shadow-sm">
-        <h3 class="font-bold text-lg">${p.name}</h3><div class="text-2xl font-black text-emerald-600 mt-2">$${p.price?.toLocaleString()}</div>
-        ${p.wholesale ? `<div class="text-xs text-amber-600 font-bold mt-1">Mayorista: $${p.wholesale.toLocaleString()}</div>` : ''}
-      </div>`).join('');
-    }
+    window.renderCatalogView = function() {
+      document.getElementById('catalogGridContainer').innerHTML = window.appState.products.map(p => `
+        <div class="bg-white p-4 rounded-xl border shadow-sm flex flex-col justify-between">
+          <div><h3 class="font-bold text-lg">${p.name}</h3><div class="text-2xl font-black text-emerald-600 mt-2">${window.appState.currency}${p.suggestedPrice.toLocaleString()}</div></div>
+        </div>`).join('');
+    };
 
-    // PDF CATALOGO
-    window.downloadCatalogPDF = function() {
+    window.exportCatalogPDF = function() {
       const el = document.getElementById('catalogGridContainer');
       html2pdf().set({ margin: 0.5, filename: 'Catalogo.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4' } }).from(el).save();
     };
 
-    // CLIENTES
-    window.openClientModal = () => document.getElementById('modalClient').classList.remove('hidden');
-    window.closeClientModal = () => document.getElementById('modalClient').classList.add('hidden');
-    window.saveClient = function() {
-      const name = document.getElementById('clientName').value;
-      if(!name) return;
-      window.appState.clients.push({ id:'cli_'+Date.now(), name, phone: document.getElementById('clientPhone').value });
-      window.saveState(); window.closeClientModal(); refreshAllViews();
+    window.updateMetrics = function() {
+      const totalRaw = window.appState.rawMaterials.reduce((acc, m) => acc + (m.stock * m.unitCost), 0);
+      const totalProd = window.appState.products.reduce((acc, p) => acc + (p.stock * p.suggestedPrice), 0);
+      document.getElementById('metricRawValue').textContent = `${window.appState.currency}${Math.round(totalRaw).toLocaleString()}`;
+      document.getElementById('metricProductsValue').textContent = `${window.appState.currency}${Math.round(totalProd).toLocaleString()}`;
     };
-    function renderClientsList() {
-      const c = document.getElementById('clientsListContainer');
-      c.innerHTML = window.appState.clients.map(cli => `<div class="bg-white p-3 rounded-lg border shadow-sm"><p class="font-bold">${cli.name}</p><p class="text-xs">${cli.phone}</p></div>`).join('');
-    }
-
-    // PEDIDOS
-    window.openOrderModal = () => { 
-      document.getElementById('orderClientId').innerHTML = window.appState.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-      activeOrderItems = []; renderOrderItems();
-      document.getElementById('modalOrder').classList.remove('hidden'); 
-    };
-    window.closeOrderModal = () => document.getElementById('modalOrder').classList.add('hidden');
-    
-    window.addOrderItemRow = function() {
-      if(window.appState.products.length===0) return;
-      activeOrderItems.push({ id: window.appState.products[0].id, qty: 1 });
-      renderOrderItems();
-    };
-    window.updateOrdId = (idx, v) => { activeOrderItems[idx].id = v; renderOrderItems(); };
-    window.updateOrdQty = (idx, v) => { activeOrderItems[idx].qty = parseInt(v)||1; renderOrderItems(); };
-    window.removeOrdItem = (idx) => { activeOrderItems.splice(idx,1); renderOrderItems(); };
-
-    function renderOrderItems() {
-      document.getElementById('orderItemsList').innerHTML = activeOrderItems.map((it, i) => {
-        const opts = window.appState.products.map(p=>`<option value="${p.id}" ${p.id===it.id?'selected':''}>${p.name}</option>`).join('');
-        return `<div class="flex gap-2 text-sm"><select onchange="updateOrdId(${i}, this.value)" class="flex-1 border rounded p-1">${opts}</select><input type="number" value="${it.qty}" oninput="updateOrdQty(${i}, this.value)" class="w-16 border text-center rounded"><button onclick="removeOrdItem(${i})" class="text-rose-500">x</button></div>`;
-      }).join('');
-    }
-
-    window.saveOrder = function() {
-      const cli = window.appState.clients.find(c=>c.id === document.getElementById('orderClientId').value);
-      if(!cli || activeOrderItems.length===0) return;
-      
-      const total = activeOrderItems.reduce((acc, it) => {
-        const p = window.appState.products.find(x=>x.id===it.id);
-        return acc + ((p?p.price:0) * it.qty);
-      }, 0);
-
-      window.appState.orders.push({ id:'ord_'+Date.now(), clientName: cli.name, items: [...activeOrderItems], total, status: document.getElementById('orderStatus').value });
-      window.saveState(); window.closeOrderModal(); refreshAllViews();
-    };
-
-    window.changeOrderStatus = function(id, val) {
-      const o = window.appState.orders.find(x=>x.id===id);
-      if(o) { o.status = val; window.saveState(); refreshAllViews(); }
-    };
-
-    function renderOrdersList() {
-      const cols = { pending:[], producing:[], delivered:[] };
-      window.appState.orders.forEach(o => cols[o.status].push(o));
-      
-      const build = (list) => list.map(o => `<div class="bg-white p-2 rounded border text-sm mb-2"><p class="font-bold">${o.clientName}</p><p class="text-xs text-slate-500 mb-1">$${o.total.toLocaleString()}</p><select onchange="changeOrderStatus('${o.id}', this.value)" class="w-full text-xs p-1 border rounded bg-slate-50"><option value="pending" ${o.status==='pending'?'selected':''}>Pendiente</option><option value="producing" ${o.status==='producing'?'selected':''}>Producción</option><option value="delivered" ${o.status==='delivered'?'selected':''}>Entregado</option></select></div>`).join('');
-      
-      document.getElementById('colOrderPending').innerHTML = build(cols.pending);
-      document.getElementById('colOrderProducing').innerHTML = build(cols.producing);
-      document.getElementById('colOrderDelivered').innerHTML = build(cols.delivered);
-    }
 
     window.addEventListener('DOMContentLoaded', initApp);
   </script>
