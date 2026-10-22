@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-50">
 <head>
@@ -6,680 +5,289 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>EmprendeCostos - Calculadora, Catálogo & Gestión</title>
   
-  <!-- PWA & Mobile Web App Meta Tags -->
   <meta name="theme-color" content="#4f46e5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="EmprendeCostos">
-  <meta name="application-name" content="EmprendeCostos">
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- HTML2PDF para exportar catálogo -->
+  <!-- HTML2PDF para exportar presupuestos y catálogos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
-          }
-        }
-      }
-    }
-  </script>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
     }
-    input, textarea, select {
-      user-select: text;
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .pulse-dot {
-      animation: pulseAnimation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    @keyframes pulseAnimation {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.9); }
-    }
-    /* Estilo para las tarjetas Kanban */
-    .kanban-col {
-      min-height: 150px;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="h-full text-slate-800 flex flex-col justify-between selection:bg-indigo-100 selection:text-indigo-700">
+<body class="h-full text-slate-800 flex flex-col justify-between">
 
   <!-- TOP HEADER -->
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 py-2.5 sm:px-6 shadow-sm">
     <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
-        <div id="brandLogoContainer" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0 border border-white/20">
-          <img id="headerBrandLogoImg" class="w-full h-full object-cover hidden" alt="Logo">
-          <i id="headerBrandLogoDefaultIcon" data-lucide="calculator" class="w-5 h-5"></i>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md">
+          <i data-lucide="calculator" class="w-5 h-5"></i>
         </div>
         <div>
           <div class="flex items-center gap-1.5">
-            <h1 id="headerBrandTitle" class="text-sm sm:text-base font-bold leading-tight text-slate-900 tracking-tight">EmprendeCostos</h1>
+            <h1 class="text-sm sm:text-base font-bold text-slate-900">EmprendeCostos Pro</h1>
             <span id="syncIndicator" class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
-              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-              <span>Modo Local</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Local
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Todo en Uno para tu Negocio</p>
         </div>
       </div>
 
-      <!-- Action items -->
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <button id="btnUserAccount" onclick="openAuthModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 rounded-xl shadow-sm shadow-indigo-200 transition-all">
+        <button onclick="openAuthModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 rounded-xl shadow-sm">
           <i data-lucide="user" class="w-4 h-4"></i>
-          <span id="userButtonLabel" class="max-w-[100px] sm:max-w-[130px] truncate">Iniciar Sesión</span>
-        </button>
-
-        <select id="currencySymbol" onchange="changeCurrency(this.value)" class="text-xs font-semibold bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="$">$ (ARS/USD/MXN)</option>
-          <option value="€">€ (EUR)</option>
-          <option value="S/">S/ (PEN)</option>
-          <option value="CLP $">CLP</option>
-          <option value="COP $">COP</option>
-        </select>
-
-        <button onclick="openShareModal()" title="Compartir o instalar" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-          <i data-lucide="share-2" class="w-4 h-4"></i>
-        </button>
-        <button onclick="openBackupModal()" title="Ajustes y Respaldo" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-          <i data-lucide="settings" class="w-5 h-5"></i>
+          <span id="userButtonLabel">Iniciar Sesión</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- CLOUD NOTICE BANNER -->
-  <div id="cloudBannerNotice" class="bg-indigo-50 border-b border-indigo-100 px-4 py-2 text-xs text-indigo-900 flex items-center justify-between">
-    <div class="max-w-5xl mx-auto w-full flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <i data-lucide="cloud" class="w-4 h-4 text-indigo-600 shrink-0"></i>
-        <span id="cloudBannerText">Crea tu usuario para respaldar todos tus datos en la nube.</span>
-      </div>
-      <button id="cloudBannerAction" onclick="openAuthModal()" class="font-bold underline text-indigo-700 hover:text-indigo-900 shrink-0">
-        Crear cuenta gratis
-      </button>
-    </div>
-  </div>
-
   <main class="flex-1 overflow-y-auto pb-24 max-w-5xl w-full mx-auto p-3 sm:p-5">
 
-    <!-- TAB 1: CALCULADORA DE PRECIOS -->
+    <!-- TAB: CALCULADORA -->
     <section id="view-calculator" class="tab-view block space-y-4">
-      <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm mb-1">
-            Fórmula de Costeo Integral
-          </span>
-          <h2 class="text-lg sm:text-xl font-bold">Calculadora de Costos & Precios</h2>
-        </div>
-        <button onclick="resetCalculatorForm()" class="text-xs bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-xl border border-white/20 transition-all flex items-center gap-1.5">
-          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Nueva receta
-        </button>
+      <div class="bg-indigo-600 rounded-2xl p-4 sm:p-5 text-white shadow-lg">
+        <h2 class="text-lg font-bold">Calculadora de Costos & Precios</h2>
+        <p class="text-xs text-indigo-100">Calcula tu costo y margen de ganancia.</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div class="lg:col-span-7 space-y-4">
           <!-- Identificación -->
-          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <i data-lucide="tag" class="w-4 h-4 text-indigo-600"></i> 1. Identificación del Producto
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre del producto *</label>
-                <input type="text" id="calcProductName" placeholder="Ej. Vela de Soja" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Unidades por lote</label>
-                <input type="number" id="calcBatchUnits" value="1" min="1" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500">
-              </div>
-            </div>
+          <div class="bg-white rounded-2xl p-4 border shadow-sm">
+            <h3 class="font-bold text-sm mb-3">1. Identificación</h3>
+            <input type="text" id="calcProductName" placeholder="Nombre del producto" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl mb-2">
+            <input type="number" id="calcBatchUnits" value="1" placeholder="Unidades por lote" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border rounded-xl">
           </div>
 
           <!-- Materias Primas -->
-          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-                <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i> 2. Materias Primas del Stock
-              </h3>
-              <button onclick="addMaterialToRecipeRow()" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar
-              </button>
+          <div class="bg-white rounded-2xl p-4 border shadow-sm">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-bold text-sm">2. Receta / Materiales</h3>
+              <button onclick="addMaterialToRecipeRow()" class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-bold">+ Agregar</button>
             </div>
-            <div id="recipeMaterialsList" class="space-y-2"></div>
-            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs font-medium text-slate-600">
-              <span>Subtotal Materias Primas:</span>
-              <span id="subtotalMaterials" class="font-bold text-slate-900 text-sm">$0.00</span>
-            </div>
+            <div id="recipeMaterialsList" class="space-y-2 mb-2"></div>
+            <div class="text-right text-xs font-bold">Subtotal: <span id="subtotalMaterials">$0.00</span></div>
           </div>
 
-          <!-- Mano de Obra y Packaging -->
-          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i> 3. Mano de Obra y Packaging
-            </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Tiempo (minutos)</label>
-                <input type="number" id="calcLaborMinutes" value="30" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Valor de tu hora</label>
-                <input type="number" id="calcLaborHourlyRate" value="3000" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-              </div>
-              <div class="col-span-2 sm:col-span-1">
-                <label class="block text-xs font-semibold text-slate-600 mb-1">Packaging extra ($)</label>
-                <input type="number" id="calcPackagingCost" value="0" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-              </div>
+          <!-- Mano de Obra y Márgenes -->
+          <div class="bg-white rounded-2xl p-4 border shadow-sm grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-semibold">Minutos de trabajo</label>
+              <input type="number" id="calcLaborMinutes" value="30" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm">
             </div>
-          </div>
-
-          <!-- Márgenes y Mayorista (NUEVO) -->
-          <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <i data-lucide="percent" class="w-4 h-4 text-indigo-600"></i> 4. Costos Fijos & Márgenes
-            </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div>
-                <label class="text-xs font-semibold text-slate-600">Indirectos %</label>
-                <input type="number" id="calcOverheadPerc" value="10" max="100" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-600">Margen Minorista %</label>
-                <input type="number" id="calcProfitMargin" value="50" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold rounded-xl">
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-600">Margen Mayorista %</label>
-                <input type="number" id="calcWholesaleMargin" value="30" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-amber-50 border border-amber-200 text-amber-800 font-bold rounded-xl">
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-600">Comisión Venta %</label>
-                <input type="number" id="calcPaymentFee" value="6" oninput="calculatePrice()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-              </div>
+            <div>
+              <label class="text-xs font-semibold">Valor de tu hora ($)</label>
+              <input type="number" id="calcLaborHourlyRate" value="3000" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-semibold">Margen Minorista %</label>
+              <input type="number" id="calcProfitMargin" value="50" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm bg-emerald-50">
+            </div>
+            <div>
+              <label class="text-xs font-semibold">Margen Mayorista %</label>
+              <input type="number" id="calcWholesaleMargin" value="30" oninput="calculatePrice()" class="w-full border p-2 rounded-xl text-sm bg-amber-50">
             </div>
           </div>
         </div>
 
-        <div class="lg:col-span-5 space-y-4">
-          <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md p-5 sticky top-20">
-            <h3 class="text-xs font-extrabold text-slate-400 mb-3 flex items-center justify-between">
-              <span>Desglose por Unidad</span>
-            </h3>
+        <div class="lg:col-span-5">
+          <div class="bg-white rounded-2xl border shadow-md p-5 sticky top-20">
+            <h3 class="text-xs font-bold text-slate-400 mb-2">PVP Minorista Sugerido</h3>
+            <div class="text-3xl font-black text-emerald-500 mb-4" id="resSuggestedPrice">$0.00</div>
+            
+            <h3 class="text-xs font-bold text-slate-400 mb-1">Precio Mayorista</h3>
+            <div class="text-xl font-bold text-amber-600 mb-4" id="resWholesalePrice">$0.00</div>
 
-            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-xl p-4 mb-3 shadow-inner">
-              <span class="text-xs text-slate-300 font-medium">Precio Venta (Minorista):</span>
-              <div class="text-3xl font-extrabold text-emerald-400" id="resSuggestedPrice">$0.00</div>
-              <div class="flex justify-between text-xs text-slate-300 mt-1">
-                <span>Ganancia Neta:</span>
-                <span id="resNetProfit" class="font-bold text-emerald-300">$0.00</span>
-              </div>
+            <div class="text-xs space-y-1 pb-4 border-b">
+              <div class="flex justify-between"><span>Costo Total Unitario:</span><span id="resTotalUnitCost" class="font-bold">$0.00</span></div>
             </div>
-
-            <!-- Nuevo desglose Mayorista -->
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 flex justify-between items-center">
-              <div>
-                <span class="block text-[10px] font-bold text-amber-800 uppercase">Precio Mayorista</span>
-                <span class="text-lg font-black text-amber-600" id="resWholesalePrice">$0.00</span>
-              </div>
-              <div class="text-right">
-                <span class="block text-[10px] text-amber-700">Ganancia M.</span>
-                <span id="resWholesaleProfit" class="font-bold text-xs text-amber-800">$0.00</span>
-              </div>
-            </div>
-
-            <div class="space-y-1.5 text-xs pb-4 border-b border-slate-100">
-              <div class="flex justify-between"><span class="text-slate-600">Costo Materiales:</span><span id="resMaterialCost" class="font-semibold text-slate-800">$0.00</span></div>
-              <div class="flex justify-between"><span class="text-slate-600">Mano de Obra:</span><span id="resLaborCost" class="font-semibold text-slate-800">$0.00</span></div>
-              <div class="flex justify-between"><span class="text-slate-600">Packaging:</span><span id="resPackagingCost" class="font-semibold text-slate-800">$0.00</span></div>
-              <div class="flex justify-between"><span class="text-slate-600">Indirectos:</span><span id="resOverheadCost" class="font-semibold text-slate-800">$0.00</span></div>
-              <div class="flex justify-between font-bold pt-1"><span class="text-slate-900">COSTO TOTAL BASE:</span><span id="resTotalUnitCost" class="text-indigo-600">$0.00</span></div>
-            </div>
-
-            <div class="pt-4 space-y-2">
-              <button onclick="saveProductFromCalculator()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow text-sm">
-                Guardar en Catálogo y Stock
-              </button>
-            </div>
+            <button onclick="saveProductFromCalculator()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-2 rounded-xl shadow">Guardar en Catálogo</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 2: CATÁLOGO -->
+    <!-- TAB: CATÁLOGO -->
     <section id="view-catalog" class="tab-view hidden space-y-4">
-      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-4 sm:p-5 text-white shadow-lg flex flex-col sm:flex-row justify-between gap-3">
-        <div>
-          <h2 class="text-lg font-bold" id="catalogStoreTitle">Catálogo de Productos</h2>
-          <p class="text-xs text-emerald-100">Comparte tu vitrina digital por WhatsApp o PDF.</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <button onclick="shareEntireCatalogWhatsApp()" class="text-xs bg-white text-emerald-800 font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-            <i data-lucide="message-circle" class="w-4 h-4"></i> Enviar Catálogo
-          </button>
-          <button onclick="downloadCatalogPDF()" class="text-xs bg-rose-600 text-white font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-            <i data-lucide="file-down" class="w-4 h-4"></i> Exportar PDF
-          </button>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <input type="text" id="searchCatalogInput" oninput="renderCatalogView()" placeholder="Buscar producto..." class="w-full px-4 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+      <div class="flex justify-between items-center bg-emerald-600 rounded-2xl p-4 text-white shadow">
+        <h2 class="text-lg font-bold">Mi Catálogo</h2>
+        <button onclick="downloadCatalogPDF()" class="text-xs bg-white text-emerald-800 font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1">
+          <i data-lucide="file-down" class="w-4 h-4"></i> PDF
+        </button>
       </div>
       <div id="catalogGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
     </section>
 
-    <!-- TAB 3: PEDIDOS / KANBAN (NUEVO) -->
+    <!-- TAB: PEDIDOS -->
     <section id="view-orders" class="tab-view hidden space-y-4">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Control de Pedidos</h2>
-          <p class="text-xs text-slate-500">Organiza tus encargos: Pendientes, Producción y Entregados.</p>
-        </div>
-        <button onclick="openOrderModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-          <i data-lucide="plus" class="w-4 h-4"></i> Registrar Pedido
-        </button>
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-bold">Pedidos</h2>
+        <button onclick="openOrderModal()" class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Nuevo</button>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto">
-        <!-- Pendientes -->
-        <div class="bg-slate-100 rounded-2xl p-3 flex flex-col gap-3 min-w-[280px]">
-          <div class="flex justify-between items-center px-1">
-            <h3 class="font-bold text-sm text-slate-700 uppercase">Pendientes</h3>
-            <span id="countOrderPending" class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <div id="colOrderPending" class="kanban-col space-y-2"></div>
-        </div>
-        <!-- Producción -->
-        <div class="bg-amber-50 rounded-2xl p-3 flex flex-col gap-3 min-w-[280px]">
-          <div class="flex justify-between items-center px-1">
-            <h3 class="font-bold text-sm text-amber-700 uppercase">En Producción</h3>
-            <span id="countOrderProducing" class="bg-amber-200 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <div id="colOrderProducing" class="kanban-col space-y-2"></div>
-        </div>
-        <!-- Entregados -->
-        <div class="bg-emerald-50 rounded-2xl p-3 flex flex-col gap-3 min-w-[280px]">
-          <div class="flex justify-between items-center px-1">
-            <h3 class="font-bold text-sm text-emerald-700 uppercase">Entregados / Cobrados</h3>
-            <span id="countOrderDelivered" class="bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <div id="colOrderDelivered" class="kanban-col space-y-2"></div>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-100 rounded-xl p-3"><h3 class="font-bold mb-2">Pendientes</h3><div id="colOrderPending" class="space-y-2"></div></div>
+        <div class="bg-amber-50 rounded-xl p-3"><h3 class="font-bold mb-2">En Producción</h3><div id="colOrderProducing" class="space-y-2"></div></div>
+        <div class="bg-emerald-50 rounded-xl p-3"><h3 class="font-bold mb-2">Entregados</h3><div id="colOrderDelivered" class="space-y-2"></div></div>
       </div>
     </section>
 
-    <!-- TAB 4: CLIENTES (CRM NUEVO) -->
+    <!-- TAB: CLIENTES -->
     <section id="view-clients" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Mis Clientes</h2>
-          <p class="text-xs text-slate-500">Agenda, contactos e historial.</p>
-        </div>
-        <button onclick="openClientModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-          <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo Cliente
-        </button>
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-bold">Clientes</h2>
+        <button onclick="openClientModal()" class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Nuevo</button>
       </div>
-      <input type="text" id="searchClientInput" oninput="renderClientsList()" placeholder="Buscar cliente por nombre..." class="w-full px-4 py-2 text-sm border border-slate-200 rounded-xl">
       <div id="clientsListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </section>
 
-    <!-- TAB 5: GASTOS EXTRAS (NUEVO) -->
-    <section id="view-expenses" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Gastos Extras</h2>
-          <p class="text-xs text-slate-500">Publicidad, viáticos, herramientas, etc.</p>
-        </div>
-        <button onclick="openExpenseModal()" class="text-xs bg-rose-600 text-white font-semibold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-          <i data-lucide="receipt" class="w-4 h-4"></i> Registrar Gasto
-        </button>
-      </div>
-      <div id="expensesListContainer" class="space-y-2"></div>
-    </section>
-
-    <!-- TAB 6: STOCK PRODUCTOS -->
-    <section id="view-products" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Stock Productos</h2>
-        </div>
-        <button onclick="openProductModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-          <i data-lucide="plus" class="w-4 h-4"></i> Nuevo
-        </button>
-      </div>
-      <input type="text" id="searchProductInput" oninput="renderProductsList()" placeholder="Buscar producto..." class="w-full px-4 py-2 text-sm border border-slate-200 rounded-xl">
-      <div id="productsListContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-    </section>
-
-    <!-- TAB 7: INSUMOS & LISTA DE COMPRAS -->
+    <!-- TAB: INSUMOS -->
     <section id="view-materials" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Stock Materia Prima</h2>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="openShoppingListModal()" class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-            <i data-lucide="shopping-cart" class="w-4 h-4"></i> Compras
-          </button>
-          <button onclick="openMaterialModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-            <i data-lucide="plus" class="w-4 h-4"></i> Insumo
-          </button>
-        </div>
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-bold">Materia Prima</h2>
+        <button onclick="openMaterialModal()" class="bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl">+ Cargar Insumo</button>
       </div>
-      <input type="text" id="searchMaterialInput" oninput="renderMaterialsList()" placeholder="Buscar insumo..." class="w-full px-4 py-2 text-sm border border-slate-200 rounded-xl">
-      <div id="materialsListContainer" class="space-y-2.5"></div>
+      <div id="materialsListContainer" class="space-y-2"></div>
     </section>
 
-    <!-- TAB 8: COTIZACIONES -->
-    <section id="view-quotations" class="tab-view hidden space-y-4">
-      <div class="flex justify-between items-center gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Cotizaciones (PDF)</h2>
-        </div>
-        <button onclick="openNewQuotationModal()" class="text-xs bg-indigo-600 text-white font-semibold px-3 py-2 rounded-xl shadow flex items-center gap-1.5">
-          <i data-lucide="plus" class="w-4 h-4"></i> Nuevo Presupuesto
-        </button>
-      </div>
-      <div id="quotationsListContainer" class="space-y-3"></div>
+    <!-- TAB: STOCK -->
+    <section id="view-products" class="tab-view hidden space-y-4">
+      <h2 class="text-lg font-bold">Stock de Productos</h2>
+      <div id="productsListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </section>
 
-    <!-- TAB 9: MÉTRICAS -->
-    <section id="view-metrics" class="tab-view hidden space-y-4">
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
-        <h2 class="text-lg font-bold text-slate-900">Métricas & Balance Real</h2>
-        
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5">
-            <span class="text-[11px] font-semibold text-emerald-700 block">Ventas Entregadas</span>
-            <span id="metricRealIncome" class="text-xl font-extrabold text-emerald-900">$0</span>
-          </div>
-          <div class="bg-rose-50 border border-rose-100 rounded-xl p-3.5">
-            <span class="text-[11px] font-semibold text-rose-700 block">Gastos Extras</span>
-            <span id="metricRealExpenses" class="text-xl font-extrabold text-rose-900">$0</span>
-          </div>
-          <div class="col-span-2 bg-indigo-900 rounded-xl p-4 text-white">
-            <span class="text-xs font-semibold text-indigo-200 block">Balance Neto Estimado (Ingresos - Gastos)</span>
-            <span id="metricRealBalance" class="text-2xl font-black text-white">$0</span>
-          </div>
-        </div>
-
-        <h3 class="text-sm font-bold text-slate-800 mt-4 border-t border-slate-100 pt-4">Valor del Inventario (Activos)</h3>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <span class="text-[10px] font-semibold text-slate-500 block">Costo Insumos</span>
-            <span id="metricRawValue" class="text-base font-bold text-slate-800">$0</span>
-          </div>
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <span class="text-[10px] font-semibold text-slate-500 block">Potencial Stock PvP</span>
-            <span id="metricProductsValue" class="text-base font-bold text-slate-800">$0</span>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 py-1.5">
-    <div class="max-w-3xl mx-auto flex overflow-x-auto no-scrollbar gap-2 px-3 items-center" style="scroll-snap-type: x mandatory;">
-      <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-indigo-600 font-semibold transition-all snap-start">
-        <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Costos</span>
-      </button>
-      <button onclick="switchTab('orders')" id="nav-btn-orders" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="clipboard-list" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Pedidos</span>
-      </button>
-      <button onclick="switchTab('catalog')" id="nav-btn-catalog" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="store" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Catálogo</span>
-      </button>
-      <button onclick="switchTab('clients')" id="nav-btn-clients" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="users" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Clientes</span>
-      </button>
-      <button onclick="switchTab('materials')" id="nav-btn-materials" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="boxes" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Insumos</span>
-      </button>
-      <button onclick="switchTab('products')" id="nav-btn-products" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="package" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Stock</span>
-      </button>
-      <button onclick="switchTab('gastos')" id="nav-btn-expenses" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="receipt" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Gastos</span>
-      </button>
-      <button onclick="switchTab('quotations')" id="nav-btn-quotations" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="file-text" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Cotizar</span>
-      </button>
-      <button onclick="switchTab('metrics')" id="nav-btn-metrics" class="nav-tab-btn flex-shrink-0 w-16 flex flex-col items-center py-1.5 rounded-xl text-slate-500 font-medium transition-all snap-start">
-        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i><span class="text-[9px]">Métricas</span>
-      </button>
+  <!-- NAVEGACIÓN INFERIOR -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t py-1.5 overflow-x-auto">
+    <div class="max-w-3xl mx-auto flex gap-2 px-3 items-center min-w-max">
+      <button onclick="switchTab('calculator')" class="w-16 flex flex-col items-center text-indigo-600 font-semibold"><i data-lucide="calculator" class="w-5 h-5"></i><span class="text-[9px]">Costos</span></button>
+      <button onclick="switchTab('catalog')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="store" class="w-5 h-5"></i><span class="text-[9px]">Catálogo</span></button>
+      <button onclick="switchTab('orders')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="clipboard-list" class="w-5 h-5"></i><span class="text-[9px]">Pedidos</span></button>
+      <button onclick="switchTab('clients')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="users" class="w-5 h-5"></i><span class="text-[9px]">Clientes</span></button>
+      <button onclick="switchTab('materials')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="boxes" class="w-5 h-5"></i><span class="text-[9px]">Insumos</span></button>
+      <button onclick="switchTab('products')" class="w-16 flex flex-col items-center text-slate-500"><i data-lucide="package" class="w-5 h-5"></i><span class="text-[9px]">Stock</span></button>
     </div>
   </nav>
 
-  
-  <!-- MODAL: Lista de Compras Inteligente -->
-  <div id="modalShoppingList" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-        <h3 class="font-bold text-base flex items-center gap-2 text-slate-900"><i data-lucide="shopping-cart" class="w-5 h-5 text-amber-500"></i> Lista de Compras</h3>
-        <button onclick="closeShoppingListModal()" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- MODALES -->
+
+  <!-- AUTH MODAL -->
+  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+      <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 class="font-bold text-lg">Nube / Cuenta</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <p class="text-xs text-slate-500">Insumos que están por debajo del stock mínimo configurado.</p>
-      <div id="shoppingListItems" class="flex-1 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2 bg-slate-50"></div>
-      <button onclick="sendShoppingListWhatsApp()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl flex justify-center gap-2 items-center text-sm shadow">
-        <i data-lucide="message-circle" class="w-4 h-4"></i> Enviar por WhatsApp
-      </button>
+
+      <div id="authViewLoggedIn" class="hidden space-y-4">
+        <p class="font-bold text-center text-indigo-600" id="accountDisplayName"></p>
+        <button onclick="logoutUser()" class="w-full bg-rose-100 text-rose-700 font-bold py-2 rounded-xl">Cerrar Sesión</button>
+      </div>
+
+      <div id="authViewGuest">
+        <div class="flex mb-4 bg-slate-100 p-1 rounded-lg text-sm">
+          <button id="authTabLoginBtn" onclick="switchAuthSubTab('login')" class="flex-1 py-1 bg-white shadow rounded text-indigo-600 font-bold">Entrar</button>
+          <button id="authTabRegisterBtn" onclick="switchAuthSubTab('register')" class="flex-1 py-1 text-slate-500 font-bold">Crear</button>
+        </div>
+
+        <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3">
+          <input type="text" id="loginUsername" placeholder="Usuario" required class="w-full border p-2 rounded-lg text-sm">
+          <input type="password" id="loginPassword" placeholder="Contraseña" required class="w-full border p-2 rounded-lg text-sm">
+          <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Iniciar Sesión</button>
+        </form>
+
+        <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+          <input type="text" id="regDisplayName" placeholder="Nombre Emprendimiento" required class="w-full border p-2 rounded-lg text-sm">
+          <input type="text" id="regUsername" placeholder="Usuario único" required class="w-full border p-2 rounded-lg text-sm">
+          <input type="password" id="regPassword" placeholder="Contraseña" required class="w-full border p-2 rounded-lg text-sm">
+          <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg">Crear Cuenta</button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL: Crear/Editar Cliente -->
-  <div id="modalClient" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-        <h3 class="font-bold text-base text-slate-900">Datos del Cliente</h3>
-        <button onclick="closeClientModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- INSUMOS MODAL -->
+  <div id="modalMaterial" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center mb-2 border-b pb-2">
+        <h3 class="font-bold">Materia Prima</h3>
+        <button onclick="closeMaterialModal()" class="text-slate-400"><i data-lucide="x"></i></button>
+      </div>
+      <input type="hidden" id="matId">
+      <input type="text" id="matName" placeholder="Nombre insumo" class="w-full border p-2 rounded-lg text-sm">
+      <div class="grid grid-cols-2 gap-2">
+        <select id="matUnit" class="border p-2 rounded-lg text-sm"><option value="g">Gramos</option><option value="u">Unidades</option><option value="ml">Mililitros</option></select>
+        <input type="number" id="matStock" placeholder="Stock" class="border p-2 rounded-lg text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="text-xs text-slate-500">Precio Pagado ($)</label><input type="number" id="matPrice" class="w-full border p-2 rounded-lg text-sm"></div>
+        <div><label class="text-xs text-slate-500">Cant. Comprada</label><input type="number" id="matQty" class="w-full border p-2 rounded-lg text-sm"></div>
+      </div>
+      <button onclick="saveMaterial()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Guardar</button>
+    </div>
+  </div>
+
+  <!-- PEDIDOS MODAL -->
+  <div id="modalOrder" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center mb-2 border-b pb-2">
+        <h3 class="font-bold">Nuevo Pedido</h3>
+        <button onclick="closeOrderModal()" class="text-slate-400"><i data-lucide="x"></i></button>
+      </div>
+      <select id="orderClientId" class="w-full border p-2 rounded-lg text-sm"></select>
+      <div class="border p-2 rounded-lg bg-slate-50">
+        <button onclick="addOrderItemRow()" class="text-xs text-indigo-600 font-bold mb-2">+ Agregar producto</button>
+        <div id="orderItemsList" class="space-y-2"></div>
+      </div>
+      <select id="orderStatus" class="w-full border p-2 rounded-lg text-sm font-bold">
+        <option value="pending">Pendiente</option><option value="producing">Producción</option><option value="delivered">Entregado</option>
+      </select>
+      <button onclick="saveOrder()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Guardar Pedido</button>
+    </div>
+  </div>
+
+  <!-- CLIENTES MODAL -->
+  <div id="modalClient" class="fixed inset-0 z-50 bg-slate-900/60 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center mb-2 border-b pb-2">
+        <h3 class="font-bold">Cliente</h3>
+        <button onclick="closeClientModal()" class="text-slate-400"><i data-lucide="x"></i></button>
       </div>
       <input type="hidden" id="clientId">
-      <div><label class="text-xs font-semibold">Nombre *</label><input type="text" id="clientName" class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"></div>
-      <div><label class="text-xs font-semibold">WhatsApp / Teléfono</label><input type="text" id="clientPhone" class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"></div>
-      <div><label class="text-xs font-semibold">Dirección de envío</label><input type="text" id="clientAddress" class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"></div>
-      <div><label class="text-xs font-semibold">Notas (gustos, talle, etc.)</label><textarea id="clientNotes" class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"></textarea></div>
-      <button onclick="saveClient()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-xl mt-2">Guardar Cliente</button>
+      <input type="text" id="clientName" placeholder="Nombre completo" class="w-full border p-2 rounded-lg text-sm">
+      <input type="text" id="clientPhone" placeholder="Teléfono" class="w-full border p-2 rounded-lg text-sm">
+      <button onclick="saveClient()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg">Guardar</button>
     </div>
   </div>
 
-  <!-- MODAL: Registrar Gasto -->
-  <div id="modalExpense" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-        <h3 class="font-bold text-base text-rose-600 flex items-center gap-2"><i data-lucide="receipt"></i> Nuevo Gasto</h3>
-        <button onclick="closeExpenseModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      <div><label class="text-xs font-semibold">Descripción del gasto *</label><input type="text" id="expDesc" placeholder="Ej. Bolsas de cartón, Envío, Publicidad..." class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-rose-500"></div>
-      <div><label class="text-xs font-semibold">Monto pagado ($) *</label><input type="number" id="expAmount" class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-rose-500"></div>
-      <button onclick="saveExpense()" class="w-full bg-rose-600 text-white font-bold py-2 rounded-xl mt-2">Registrar Gasto</button>
-    </div>
-  </div>
+  <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2"></div>
 
-  <!-- MODAL: Crear/Editar Pedido -->
-  <div id="modalOrder" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-        <h3 class="font-bold text-base text-slate-900" id="orderModalTitle">Nuevo Pedido</h3>
-        <button onclick="closeOrderModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      
-      <input type="hidden" id="orderId">
-      
-      <div class="grid grid-cols-2 gap-2">
-        <div class="col-span-2">
-          <label class="text-xs font-semibold block mb-1">Cliente *</label>
-          <select id="orderClientId" class="w-full border p-2 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"></select>
-        </div>
-        <div>
-          <label class="text-xs font-semibold block mb-1">Tipo de Precio</label>
-          <select id="orderPriceType" onchange="refreshOrderItemsTotal()" class="w-full border p-2 rounded-xl text-sm bg-slate-50">
-            <option value="retail">Minorista</option>
-            <option value="wholesale">Mayorista</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-semibold block mb-1">Estado</label>
-          <select id="orderStatus" class="w-full border p-2 rounded-xl text-sm font-bold text-slate-700 bg-slate-50">
-            <option value="pending">🟡 Pendiente</option>
-            <option value="producing">🟠 En Producción</option>
-            <option value="delivered">🟢 Entregado / Cobrado</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="border p-3 rounded-xl bg-slate-50">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-xs font-bold text-slate-700">Productos del pedido</span>
-          <button onclick="addOrderItemRow()" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md font-bold">+ Producto</button>
-        </div>
-        <div id="orderItemsList" class="space-y-2"></div>
-        <div class="flex justify-between text-sm font-black pt-2 mt-2 border-t border-slate-200 text-slate-900">
-          <span>Total:</span>
-          <span id="orderTotalDisplay">$0.00</span>
-        </div>
-      </div>
-      
-      <button onclick="saveOrder()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl shadow">Guardar Pedido</button>
-    </div>
-  </div>
-
-  <!-- MODAL: AUTENTICACIÓN / USUARIOS / BASE DE DATOS -->
-  <div id="modalAuth" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl overflow-y-auto max-h-[92vh] space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
-            <i data-lucide="database" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-base text-slate-900">Nube Firebase</h3>
-            <p class="text-[11px] text-slate-500">Guarda tus datos de forma segura</p>
-          </div>
-        </div>
-        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <!-- VIEW: Logged In Account Info -->
-      <div id="authViewLoggedIn" class="hidden space-y-4">
-        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-sm" id="userAvatarText">U</div>
-          <div class="flex-1 min-w-0">
-            <h4 class="font-bold text-sm text-slate-900 truncate" id="accountDisplayName">Mi Emprendimiento</h4>
-            <p class="text-xs text-slate-600 truncate mt-0.5" id="accountUsernameDisplay">@usuario</p>
-          </div>
-        </div>
-        <button onclick="logoutUser()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
-          <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
-        </button>
-      </div>
-
-      <!-- VIEW: Login & Register Tabs -->
-      <div id="authViewGuest" class="space-y-4">
-        <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-semibold">
-          <button id="authTabLoginBtn" onclick="switchAuthSubTab('login')" class="flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm transition-all text-center">Iniciar Sesión</button>
-          <button id="authTabRegisterBtn" onclick="switchAuthSubTab('register')" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center">Crear Cuenta</button>
-        </div>
-
-        <!-- FORM: LOGIN -->
-        <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Usuario *</label>
-            <input type="text" id="loginUsername" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
-            <input type="password" id="loginPassword" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
-          </div>
-          <button type="submit" class="w-full mt-2 bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md text-sm">Entrar y Descargar mis datos</button>
-        </form>
-
-        <!-- FORM: REGISTER -->
-        <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Emprendimiento *</label>
-            <input type="text" id="regDisplayName" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Usuario único *</label>
-            <input type="text" id="regUsername" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña *</label>
-            <input type="password" id="regPassword" required minlength="4" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl">
-          </div>
-          <div class="p-2.5 bg-indigo-50/70 border border-indigo-100 rounded-xl text-[11px] text-indigo-900">
-            <label class="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" id="regIncludeCurrentData" checked class="rounded text-indigo-600 mt-0.5">
-              <span>Guardar en esta cuenta los datos actuales que tengo en pantalla.</span>
-            </label>
-          </div>
-          <button type="submit" class="w-full mt-2 bg-emerald-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md text-sm">Crear y Subir a la nube</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div id="toastContainer" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-sm"></div>
-
-  <!-- APPLICATION ENGINE JAVASCRIPT -->
+  <!-- CORE LOGIC - JS TYPE MODULE PARA FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    /* Global Storage Keys & State */
-    const LOCAL_STORAGE_KEY = 'emprende_costos_v3_data';
-    const SESSION_USER_KEY = 'emprende_costos_v3_session';
+    const LOCAL_STORAGE_KEY = 'emprende_costos_v4_data';
+    const SESSION_USER_KEY = 'emprende_costos_v4_session'; // Ahora persistente
+    const appId = 'emprendecostos-v4';
 
-    window.appState = {
-      currency: '$',
-      brandName: 'Mi Emprendimiento',
-      brandLogo: '',
-      rawMaterials: [],
-      products: [],
-      quotations: [],
-      calculatorRecipe: [],
-      clients: [],      // NUEVO
-      orders: [],       // NUEVO
-      expenses: []      // NUEVO
-    };
-
-    let currentUserAccount = null;
-    let activeOrderItems = [];
-    let deferredInstallPrompt = null;
-
-    /* Configuración Segura de Nube */
-    const appId = 'emprendecostos-v3';
-    
-    // 👇 REEMPLAZA ESTE BLOQUE CON EL "firebaseConfig" QUE TE DIO FIREBASE 👇
+    // 🚀 TUS DATOS DE FIREBASE AQUÍ
     const fbConfig = {
       apiKey: "AIzaSyBDD0Ei8v9qwKe2cUWNy97yzbeWk-xbbkQ",
       authDomain: "emprendecostos-app.firebaseapp.com",
@@ -688,687 +296,334 @@
       messagingSenderId: "397294711130",
       appId: "1:397294711130:web:1b562e8bb0c0ddbd264363"
     };
-    // 👆 ==================================================================== 👆
 
-    let db = null;
-    let auth = null;
-    let fbUser = null;
+    window.appState = {
+      currency: '$', brandName: 'Mi Emprendimiento',
+      rawMaterials: [], products: [], calculatorRecipe: [],
+      clients: [], orders: [], expenses: []
+    };
 
+    let currentUserAccount = null;
+    let activeOrderItems = [];
+    let db, auth;
+
+    // INICIALIZACIÓN
     async function initFirebase() {
-      // Detecta si estás usando tu propio Firebase (Vercel) o el de la IA
-      let finalConfig = null;
-      if (fbConfig && fbConfig.apiKey !== "TU_API_KEY") {
-        finalConfig = fbConfig;
-      } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        finalConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
-      }
-
-      if (!finalConfig) {
-        console.warn("Modo offline: sin configuración de Firebase detectada.");
-        return;
-      }
-
       try {
-        const app = initializeApp(finalConfig);
+        const app = initializeApp(fbConfig);
         db = getFirestore(app);
         auth = getAuth(app);
         
+        // Log in anónimo para permisos de Firebase
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
         } else {
-          // Si estamos en Vercel, iniciamos sesión en tu propia base de datos
           await signInAnonymously(auth);
         }
-        fbUser = auth.currentUser;
-      } catch(e) { console.error("Firebase auth error:", e); }
+      } catch(e) { console.error("Firebase Auth Error", e); }
+    }
+
+    // CARGAR DATOS DESDE FIREBASE
+    async function loadAccountData(username) {
+      if (!db) return;
+      try {
+        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', username);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists() && docSnap.data().appState) {
+          window.appState = docSnap.data().appState;
+        }
+      } catch(e) { console.error("Fallo lectura nube:", e); }
     }
 
     async function initApp() {
       await initFirebase();
-      const savedSession = sessionStorage.getItem(SESSION_USER_KEY);
+      // Leemos de localStorage para que no se borre en móviles al cerrar la app
+      const savedSession = localStorage.getItem(SESSION_USER_KEY);
       if (savedSession) {
         try {
           currentUserAccount = JSON.parse(savedSession);
           await loadAccountData(currentUserAccount.username);
-        } catch(e) { loadLocalFallbackData(); }
+        } catch(e) {}
       } else {
-        loadLocalFallbackData();
+        const local = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if(local) window.appState = JSON.parse(local);
       }
-      
-      // Asegurar arrays si el usuario viene de versión vieja
-      appState.clients = appState.clients || [];
-      appState.orders = appState.orders || [];
-      appState.expenses = appState.expenses || [];
-
       refreshAllViews();
       updateAuthUIState();
     }
 
-    function loadLocalFallbackData() {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        try { appState = JSON.parse(stored); } catch(e) { }
-      }
-    }
-
+    // GUARDAR DATOS (LOCAL Y NUBE)
     window.saveState = async function() {
-      try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState)); } catch(e) {}
-      if (currentUserAccount && db && fbUser) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(window.appState));
+      if (currentUserAccount && db && auth.currentUser) {
         try {
           const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', currentUserAccount.username);
-          await updateDoc(userRef, { appState: appState, updatedAt: new Date().toISOString() });
-        } catch(e) { console.warn("Sincronización en segundo plano falló."); }
+          await updateDoc(userRef, { appState: window.appState, updatedAt: new Date().toISOString() });
+        } catch(e) {}
       }
     };
 
-    window.refreshAllViews = function() {
-      document.getElementById('currencySymbol').value = appState.currency || '$';
-      updateBrandDisplayUI();
+    // ==========================================
+    // EXPOSICIÓN DE FUNCIONES AL WINDOW (HTML)
+    // ==========================================
+    window.showToast = function(msg, type='info') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `px-4 py-2 rounded text-white text-sm font-bold shadow ${type==='error'?'bg-rose-600':'bg-emerald-600'}`;
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(()=>t.remove(), 2500);
+    };
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab-view').forEach(e => e.classList.add('hidden'));
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+    };
+
+    function refreshAllViews() {
       renderRecipeMaterialsList();
-      calculatePrice();
-      renderProductsList();
+      window.calculatePrice();
       renderCatalogView();
-      renderQuotationsList();
       renderMaterialsList();
+      renderProductsList();
       renderClientsList();
-      renderOrdersKanban();
-      renderExpensesList();
-      updateMetrics();
-      if (window.lucide) lucide.createIcons();
-    };
+      renderOrdersList();
+      if(window.lucide) lucide.createIcons();
+    }
 
-    /* ==================================================
-       FUNCIONES DE AUTENTICACION Y NUBE FIREBASE
-       ================================================== */
-    window.openAuthModal = function() {
-      updateAuthUIState();
-      document.getElementById('modalAuth').classList.remove('hidden');
-      if (window.lucide) lucide.createIcons();
-    };
-    
-    window.closeAuthModal = function() { 
-      document.getElementById('modalAuth').classList.add('hidden'); 
-    };
-    
+    // AUTH / LOGIN
+    window.openAuthModal = () => document.getElementById('modalAuth').classList.remove('hidden');
+    window.closeAuthModal = () => document.getElementById('modalAuth').classList.add('hidden');
     window.switchAuthSubTab = function(tab) {
-      if (tab === 'login') {
-        document.getElementById('formLogin').classList.remove('hidden');
-        document.getElementById('formRegister').classList.add('hidden');
-        document.getElementById('authTabLoginBtn').className = 'flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm text-center';
-        document.getElementById('authTabRegisterBtn').className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center';
-      } else {
-        document.getElementById('formLogin').classList.add('hidden');
-        document.getElementById('formRegister').classList.remove('hidden');
-        document.getElementById('authTabRegisterBtn').className = 'flex-1 py-2 rounded-lg bg-white text-indigo-600 shadow-sm text-center';
-        document.getElementById('authTabLoginBtn').className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center';
-      }
+      document.getElementById('formLogin').classList.toggle('hidden', tab!=='login');
+      document.getElementById('formRegister').classList.toggle('hidden', tab==='login');
     };
 
     function updateAuthUIState() {
-      const userBtnLabel = document.getElementById('userButtonLabel');
-      const syncIndicator = document.getElementById('syncIndicator');
-      const guestView = document.getElementById('authViewGuest');
-      const loggedView = document.getElementById('authViewLoggedIn');
-      
+      const btn = document.getElementById('userButtonLabel');
+      const ind = document.getElementById('syncIndicator');
       if (currentUserAccount) {
-        if(userBtnLabel) userBtnLabel.textContent = currentUserAccount.displayName;
-        if (syncIndicator) {
-          syncIndicator.classList.remove('hidden');
-          syncIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-emerald-700">Online en Firebase</span>`;
-        }
-        if(guestView) guestView.classList.add('hidden');
-        if(loggedView) loggedView.classList.remove('hidden');
-        if(document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = currentUserAccount.displayName;
-        if(document.getElementById('accountUsernameDisplay')) document.getElementById('accountUsernameDisplay').textContent = `@${currentUserAccount.username}`;
+        btn.textContent = currentUserAccount.displayName;
+        ind.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Nube`;
+        document.getElementById('authViewLoggedIn').classList.remove('hidden');
+        document.getElementById('authViewGuest').classList.add('hidden');
+        document.getElementById('accountDisplayName').textContent = currentUserAccount.displayName;
       } else {
-        if(userBtnLabel) userBtnLabel.textContent = 'Iniciar Sesión';
-        if (syncIndicator) syncIndicator.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Modo Local</span>`;
-        if(guestView) guestView.classList.remove('hidden');
-        if(loggedView) loggedView.classList.add('hidden');
+        btn.textContent = 'Iniciar Sesión';
+        ind.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Local`;
+        document.getElementById('authViewLoggedIn').classList.add('hidden');
+        document.getElementById('authViewGuest').classList.remove('hidden');
       }
     }
 
     window.handleRegisterSubmit = async function(e) {
       e.preventDefault();
-      const displayName = document.getElementById('regDisplayName').value.trim();
-      const rawUser = document.getElementById('regUsername').value.trim().toLowerCase();
-      const pass = document.getElementById('regPassword').value;
-      const includeData = document.getElementById('regIncludeCurrentData').checked;
-
-      const userState = includeData ? JSON.parse(JSON.stringify(appState)) : { currency: '$', brandName: displayName, rawMaterials: [], products: [], quotations: [], calculatorRecipe: [], clients: [], orders: [], expenses: [] };
-      userState.brandName = displayName;
-
-      currentUserAccount = { username: rawUser, displayName: displayName, password: btoa(pass) };
-      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
-      appState = userState;
+      const u = document.getElementById('regUsername').value.toLowerCase();
+      const d = document.getElementById('regDisplayName').value;
+      const p = document.getElementById('regPassword').value;
+      
+      currentUserAccount = { username: u, displayName: d, password: btoa(p) };
+      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
 
       if (db) {
-        try {
-          // Guarda los datos en TU propia base de datos Firebase!
-          const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', rawUser);
-          await setDoc(userRef, { 
-            username: rawUser, 
-            displayName: displayName, 
-            password: btoa(pass), 
-            appState: appState, 
-            updatedAt: new Date().toISOString() 
-          });
-        } catch(err) { console.error("Firebase Auth Error", err); }
+        const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', u);
+        await setDoc(userRef, { username: u, displayName: d, password: btoa(p), appState: window.appState });
       }
-      
-      saveState(); refreshAllViews(); closeAuthModal(); updateAuthUIState();
-      showToast(`¡Cuenta en la nube creada con éxito!`, "success");
+      window.showToast("Cuenta creada en la nube", "success");
+      window.closeAuthModal(); updateAuthUIState(); window.saveState();
     };
 
     window.handleLoginSubmit = async function(e) {
       e.preventDefault();
-      const rawUser = document.getElementById('loginUsername').value.trim().toLowerCase();
-      const pass = document.getElementById('loginPassword').value;
-      let foundUser = null;
-
-      if (db) {
-        try {
-          showToast("Conectando con Firebase...", "info");
-          const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', rawUser);
-          const docSnap = await getDoc(userRef);
-          if (docSnap.exists()) foundUser = docSnap.data();
-        } catch(err) { console.error(err); }
-      }
-
-      if (!foundUser) {
-         showToast("Usuario no encontrado en la nube.", "error"); return;
-      }
-      if (foundUser.password !== btoa(pass)) {
-        showToast("Contraseña incorrecta", "error"); return;
-      }
-
-      currentUserAccount = { username: rawUser, displayName: foundUser.displayName, password: foundUser.password };
-      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
-      appState = foundUser.appState || appState;
+      const u = document.getElementById('loginUsername').value.toLowerCase();
+      const p = document.getElementById('loginPassword').value;
       
-      saveState(); refreshAllViews(); closeAuthModal(); updateAuthUIState();
-      showToast(`¡Datos descargados de la nube correctamente!`, "success");
+      if (!db) return window.showToast("Error de conexión", "error");
+      
+      const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', u);
+      const docSnap = await getDoc(userRef);
+      
+      if (!docSnap.exists() || docSnap.data().password !== btoa(p)) {
+        return window.showToast("Credenciales incorrectas", "error");
+      }
+      
+      window.appState = docSnap.data().appState;
+      currentUserAccount = { username: u, displayName: docSnap.data().displayName };
+      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(currentUserAccount));
+      
+      window.showToast("Datos sincronizados", "success");
+      window.closeAuthModal(); updateAuthUIState(); refreshAllViews();
     };
 
     window.logoutUser = function() {
-      sessionStorage.removeItem(SESSION_USER_KEY);
+      localStorage.removeItem(SESSION_USER_KEY);
       currentUserAccount = null;
-      loadLocalFallbackData();
-      saveState(); refreshAllViews(); updateAuthUIState(); closeAuthModal();
-      showToast("Sesión cerrada", "info");
+      window.appState = { currency: '$', rawMaterials: [], products: [], calculatorRecipe: [], clients: [], orders: [] };
+      window.closeAuthModal(); updateAuthUIState(); refreshAllViews();
     };
 
+    // CALCULADORA
+    window.addMaterialToRecipeRow = function() {
+      if(window.appState.rawMaterials.length===0) return window.showToast("Carga insumos primero", "error");
+      window.appState.calculatorRecipe.push({ materialId: window.appState.rawMaterials[0].id, qty: 1 });
+      renderRecipeMaterialsList(); window.calculatePrice(); window.saveState();
+    };
+
+    window.updateRecipeMat = (idx, val) => { window.appState.calculatorRecipe[idx].materialId = val; window.calculatePrice(); window.saveState(); };
+    window.updateRecipeQty = (idx, val) => { window.appState.calculatorRecipe[idx].qty = parseFloat(val)||0; window.calculatePrice(); window.saveState(); };
+    window.removeRecipeMat = (idx) => { window.appState.calculatorRecipe.splice(idx,1); renderRecipeMaterialsList(); window.calculatePrice(); window.saveState(); };
+
+    function renderRecipeMaterialsList() {
+      const c = document.getElementById('recipeMaterialsList');
+      c.innerHTML = window.appState.calculatorRecipe.map((it, i) => {
+        const mat = window.appState.rawMaterials.find(m => m.id === it.materialId) || window.appState.rawMaterials[0];
+        const opts = window.appState.rawMaterials.map(m => `<option value="${m.id}" ${m.id===it.materialId?'selected':''}>${m.name} ($${m.unitCost.toFixed(2)})</option>`).join('');
+        return `<div class="flex gap-2 text-sm"><select onchange="updateRecipeMat(${i}, this.value)" class="flex-1 border p-1 rounded">${opts}</select><input type="number" value="${it.qty}" oninput="updateRecipeQty(${i}, this.value)" class="w-16 border p-1 rounded text-center"><button onclick="removeRecipeMat(${i})" class="text-rose-500">x</button></div>`;
+      }).join('');
+    }
+
     window.calculatePrice = function() {
-      const cur = appState.currency || '$';
-      const batchUnits = Math.max(1, parseFloat(document.getElementById('calcBatchUnits').value) || 1);
-      
-      let totalBatchMaterialsCost = 0;
-      appState.calculatorRecipe.forEach(item => {
-        const mat = appState.rawMaterials.find(m => m.id === item.materialId);
-        if (mat) {
-          let qty = parseFloat(item.quantityUsed) || 0;
-          // Cálculos de merma omitidos por brevedad para mostrar estructura. Son iguales a versión V2.
-          totalBatchMaterialsCost += qty * mat.unitCost;
-        }
+      let costMat = 0;
+      window.appState.calculatorRecipe.forEach(it => {
+        const m = window.appState.rawMaterials.find(x => x.id === it.materialId);
+        if(m) costMat += it.qty * m.unitCost;
       });
-      const unitMaterialsCost = totalBatchMaterialsCost / batchUnits;
-      document.getElementById('subtotalMaterials').textContent = `${cur} ${totalBatchMaterialsCost.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+      document.getElementById('subtotalMaterials').textContent = `$${costMat.toFixed(2)}`;
 
-      const minutes = parseFloat(document.getElementById('calcLaborMinutes').value) || 0;
-      const hourlyRate = parseFloat(document.getElementById('calcLaborHourlyRate').value) || 0;
-      const unitLaborCost = ((minutes / 60) * hourlyRate) / batchUnits;
-      const packagingCost = parseFloat(document.getElementById('calcPackagingCost').value) || 0;
+      const labMin = parseFloat(document.getElementById('calcLaborMinutes').value)||0;
+      const labHr = parseFloat(document.getElementById('calcLaborHourlyRate').value)||0;
+      const units = parseFloat(document.getElementById('calcBatchUnits').value)||1;
+      const labCost = ((labMin/60)*labHr)/units;
+      const unitMat = costMat/units;
+      const totalCost = unitMat + labCost;
 
-      const overheadPerc = (parseFloat(document.getElementById('calcOverheadPerc').value) || 0) / 100;
-      const directUnitCost = unitMaterialsCost + unitLaborCost + packagingCost;
-      const unitOverheadCost = directUnitCost * overheadPerc;
-      const totalUnitCost = directUnitCost + unitOverheadCost;
+      const pMinorista = parseFloat(document.getElementById('calcProfitMargin').value)||0;
+      const pMayorista = parseFloat(document.getElementById('calcWholesaleMargin').value)||0;
 
-      // Minorista
-      const profitMarginPerc = (parseFloat(document.getElementById('calcProfitMargin').value) || 0) / 100;
-      const paymentFeePerc = (parseFloat(document.getElementById('calcPaymentFee').value) || 0) / 100;
-      let finalSuggestedPrice = totalUnitCost * (1 + profitMarginPerc);
-      if (paymentFeePerc > 0 && paymentFeePerc < 0.95) finalSuggestedPrice = finalSuggestedPrice / (1 - paymentFeePerc);
-      const netProfitUnit = finalSuggestedPrice * (1 - paymentFeePerc) - totalUnitCost;
+      const minorista = totalCost * (1 + (pMinorista/100));
+      const mayorista = totalCost * (1 + (pMayorista/100));
 
-      // Mayorista
-      const wholesaleMarginPerc = (parseFloat(document.getElementById('calcWholesaleMargin').value) || 0) / 100;
-      let wholesalePrice = totalUnitCost * (1 + wholesaleMarginPerc);
-      if (paymentFeePerc > 0 && paymentFeePerc < 0.95) wholesalePrice = wholesalePrice / (1 - paymentFeePerc);
-      const wholesaleProfit = wholesalePrice * (1 - paymentFeePerc) - totalUnitCost;
-
-      document.getElementById('resSuggestedPrice').textContent = `${cur} ${finalSuggestedPrice.toLocaleString('es-AR', {maximumFractionDigits: 2})}`;
-      document.getElementById('resNetProfit').textContent = `${cur} ${netProfitUnit.toLocaleString('es-AR', {maximumFractionDigits: 2})}`;
-      
-      document.getElementById('resWholesalePrice').textContent = `${cur} ${wholesalePrice.toLocaleString('es-AR', {maximumFractionDigits: 2})}`;
-      document.getElementById('resWholesaleProfit').textContent = `${cur} ${wholesaleProfit.toLocaleString('es-AR', {maximumFractionDigits: 2})}`;
-      
-      document.getElementById('resTotalUnitCost').textContent = `${cur} ${totalUnitCost.toLocaleString('es-AR', {maximumFractionDigits: 2})}`;
-
-      return {
-        unitCost: totalUnitCost,
-        suggestedPrice: finalSuggestedPrice,
-        wholesalePrice: wholesalePrice
-      };
+      document.getElementById('resTotalUnitCost').textContent = `$${totalCost.toFixed(2)}`;
+      document.getElementById('resSuggestedPrice').textContent = `$${minorista.toFixed(2)}`;
+      document.getElementById('resWholesalePrice').textContent = `$${mayorista.toFixed(2)}`;
+      return { cost: totalCost, min: minorista, may: mayorista };
     };
 
     window.saveProductFromCalculator = function() {
-      const name = document.getElementById('calcProductName').value.trim();
-      if (!name) { showToast("Ingresa un nombre", "error"); return; }
-      const prices = calculatePrice();
-
-      const existing = appState.products.find(p => p.name.toLowerCase() === name.toLowerCase());
-      if (existing) {
-        existing.unitCost = prices.unitCost;
-        existing.suggestedPrice = prices.suggestedPrice;
-        existing.wholesalePrice = prices.wholesalePrice;
-        existing.recipe = JSON.parse(JSON.stringify(appState.calculatorRecipe));
-        showToast("Producto actualizado", "success");
-      } else {
-        appState.products.push({
-          id: 'prod_' + Date.now(),
-          name, description: '', photo: '',
-          unitCost: prices.unitCost,
-          suggestedPrice: prices.suggestedPrice,
-          wholesalePrice: prices.wholesalePrice,
-          stock: 0,
-          recipe: JSON.parse(JSON.stringify(appState.calculatorRecipe))
-        });
-        showToast("Producto agregado", "success");
-      }
-      saveState(); refreshAllViews(); switchTab('products');
+      const name = document.getElementById('calcProductName').value;
+      if(!name) return window.showToast("Ponle nombre al producto", "error");
+      const { cost, min, may } = window.calculatePrice();
+      window.appState.products.push({ id: 'prod_'+Date.now(), name, cost, price: min, wholesale: may, stock: 0 });
+      window.saveState(); window.showToast("Producto guardado", "success"); refreshAllViews();
     };
 
-    /* CRM CLIENTES */
-    window.renderClientsList = function() {
-      const container = document.getElementById('clientsListContainer');
-      const query = (document.getElementById('searchClientInput')?.value || '').toLowerCase();
-      
-      const filtered = appState.clients.filter(c => c.name.toLowerCase().includes(query));
-      container.innerHTML = '';
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center p-5 text-slate-400">No hay clientes en tu agenda.</div>`;
-        return;
-      }
-
-      filtered.forEach(c => {
-        const orderCount = appState.orders.filter(o => o.clientId === c.id).length;
-        const div = document.createElement('div');
-        div.className = "bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm";
-        div.innerHTML = `
-          <div>
-            <h4 class="font-bold text-sm text-slate-800">${c.name}</h4>
-            <p class="text-xs text-slate-500"><i data-lucide="phone" class="w-3 h-3 inline"></i> ${c.phone || 'Sin tel.'}</p>
-            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md mt-1 inline-block">${orderCount} pedidos</span>
-          </div>
-          <button onclick="editClient('${c.id}')" class="p-2 text-indigo-600 bg-indigo-50 rounded-lg"><i data-lucide="edit" class="w-4 h-4"></i></button>
-        `;
-        container.appendChild(div);
-      });
-      if (window.lucide) lucide.createIcons();
+    // INSUMOS
+    window.openMaterialModal = () => { document.getElementById('matId').value=''; document.getElementById('modalMaterial').classList.remove('hidden'); };
+    window.closeMaterialModal = () => document.getElementById('modalMaterial').classList.add('hidden');
+    window.saveMaterial = function() {
+      const name = document.getElementById('matName').value;
+      const price = parseFloat(document.getElementById('matPrice').value)||0;
+      const qty = parseFloat(document.getElementById('matQty').value)||1;
+      if(!name) return;
+      window.appState.rawMaterials.push({ id:'mat_'+Date.now(), name, unit: document.getElementById('matUnit').value, stock: parseFloat(document.getElementById('matStock').value)||0, unitCost: price/qty });
+      window.saveState(); window.closeMaterialModal(); refreshAllViews(); window.showToast("Insumo guardado", "success");
     };
 
-    window.openClientModal = function() {
-      document.getElementById('clientId').value = '';
-      document.getElementById('clientName').value = '';
-      document.getElementById('clientPhone').value = '';
-      document.getElementById('clientAddress').value = '';
-      document.getElementById('clientNotes').value = '';
-      document.getElementById('modalClient').classList.remove('hidden');
+    function renderMaterialsList() {
+      const c = document.getElementById('materialsListContainer');
+      c.innerHTML = window.appState.rawMaterials.map(m => `<div class="bg-white p-3 rounded-lg border shadow-sm flex justify-between"><div><p class="font-bold text-sm">${m.name}</p><p class="text-xs text-slate-500">Costo: $${m.unitCost.toFixed(2)} / ${m.unit}</p></div><div class="text-right font-bold text-sm">${m.stock} ${m.unit}</div></div>`).join('');
+    }
+
+    // PRODUCTOS & CATALOGO
+    function renderProductsList() {
+      const c = document.getElementById('productsListContainer');
+      c.innerHTML = window.appState.products.map(p => `<div class="bg-white p-3 rounded-lg border shadow-sm">
+        <h4 class="font-bold">${p.name}</h4><div class="flex justify-between text-xs mt-2"><span class="text-slate-500">Costo: $${p.cost?.toFixed(2)}</span><span class="font-bold text-emerald-600">PVP: $${p.price?.toFixed(2)}</span></div>
+      </div>`).join('');
+    }
+
+    function renderCatalogView() {
+      const c = document.getElementById('catalogGridContainer');
+      c.innerHTML = window.appState.products.map(p => `<div class="bg-white p-4 rounded-xl border shadow-sm">
+        <h3 class="font-bold text-lg">${p.name}</h3><div class="text-2xl font-black text-emerald-600 mt-2">$${p.price?.toLocaleString()}</div>
+        ${p.wholesale ? `<div class="text-xs text-amber-600 font-bold mt-1">Mayorista: $${p.wholesale.toLocaleString()}</div>` : ''}
+      </div>`).join('');
+    }
+
+    // PDF CATALOGO
+    window.downloadCatalogPDF = function() {
+      const el = document.getElementById('catalogGridContainer');
+      html2pdf().set({ margin: 0.5, filename: 'Catalogo.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4' } }).from(el).save();
     };
+
+    // CLIENTES
+    window.openClientModal = () => document.getElementById('modalClient').classList.remove('hidden');
     window.closeClientModal = () => document.getElementById('modalClient').classList.add('hidden');
-
     window.saveClient = function() {
-      const id = document.getElementById('clientId').value;
-      const name = document.getElementById('clientName').value.trim();
-      if (!name) { showToast("Nombre requerido", "error"); return; }
-      
-      const data = {
-        name,
-        phone: document.getElementById('clientPhone').value,
-        address: document.getElementById('clientAddress').value,
-        notes: document.getElementById('clientNotes').value
-      };
-
-      if (id) {
-        const c = appState.clients.find(x => x.id === id);
-        Object.assign(c, data);
-        showToast("Cliente actualizado", "success");
-      } else {
-        appState.clients.push({ id: 'cli_' + Date.now(), ...data });
-        showToast("Cliente agregado", "success");
-      }
-      saveState(); renderClientsList(); closeClientModal();
+      const name = document.getElementById('clientName').value;
+      if(!name) return;
+      window.appState.clients.push({ id:'cli_'+Date.now(), name, phone: document.getElementById('clientPhone').value });
+      window.saveState(); window.closeClientModal(); refreshAllViews();
     };
-    window.editClient = function(id) {
-      const c = appState.clients.find(x => x.id === id);
-      if(!c) return;
-      openClientModal();
-      document.getElementById('clientId').value = c.id;
-      document.getElementById('clientName').value = c.name;
-      document.getElementById('clientPhone').value = c.phone || '';
-      document.getElementById('clientAddress').value = c.address || '';
-      document.getElementById('clientNotes').value = c.notes || '';
-    };
+    function renderClientsList() {
+      const c = document.getElementById('clientsListContainer');
+      c.innerHTML = window.appState.clients.map(cli => `<div class="bg-white p-3 rounded-lg border shadow-sm"><p class="font-bold">${cli.name}</p><p class="text-xs">${cli.phone}</p></div>`).join('');
+    }
 
-    /* GASTOS EXTRAS */
-    window.renderExpensesList = function() {
-      const container = document.getElementById('expensesListContainer');
-      const cur = appState.currency || '$';
-      container.innerHTML = '';
-      if (appState.expenses.length === 0) {
-        container.innerHTML = `<div class="text-center p-5 text-slate-400">No registraste gastos extras.</div>`;
-        return;
-      }
-      appState.expenses.forEach(e => {
-        const div = document.createElement('div');
-        div.className = "bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm";
-        div.innerHTML = `
-          <div>
-            <h4 class="font-bold text-sm text-slate-800">${e.description}</h4>
-            <span class="text-[10px] text-slate-500">${e.date}</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="font-black text-rose-600">${cur}${e.amount.toLocaleString()}</span>
-            <button onclick="deleteExpense('${e.id}')" class="text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-      if (window.lucide) lucide.createIcons();
-    };
-
-    window.openExpenseModal = () => {
-      document.getElementById('expDesc').value = '';
-      document.getElementById('expAmount').value = '';
-      document.getElementById('modalExpense').classList.remove('hidden');
-    };
-    window.closeExpenseModal = () => document.getElementById('modalExpense').classList.add('hidden');
-    window.saveExpense = function() {
-      const desc = document.getElementById('expDesc').value.trim();
-      const amount = parseFloat(document.getElementById('expAmount').value);
-      if (!desc || !amount) { showToast("Completa los campos", "error"); return; }
-      appState.expenses.unshift({
-        id: 'exp_' + Date.now(),
-        date: new Date().toISOString().slice(0, 10),
-        description: desc,
-        amount: amount
-      });
-      saveState(); renderExpensesList(); updateMetrics(); closeExpenseModal();
-      showToast("Gasto registrado", "success");
-    };
-    window.deleteExpense = function(id) {
-      appState.expenses = appState.expenses.filter(e => e.id !== id);
-      saveState(); renderExpensesList(); updateMetrics();
-    };
-
-    /* LISTA DE COMPRAS */
-    window.openShoppingListModal = function() {
-      const listDiv = document.getElementById('shoppingListItems');
-      const cur = appState.currency || '$';
-      const toBuy = appState.rawMaterials.filter(m => m.stock <= (m.minStock || 0));
-      
-      if (toBuy.length === 0) {
-        listDiv.innerHTML = `<p class="text-center text-slate-400 py-4 text-sm font-semibold">Todo tu inventario está por encima del stock mínimo. ¡Estás genial!</p>`;
-      } else {
-        let html = '';
-        toBuy.forEach(m => {
-          html += `
-            <div class="bg-white p-2 border border-slate-200 rounded-lg flex justify-between items-center text-xs">
-              <div>
-                <strong class="text-slate-800">${m.name}</strong>
-                <p class="text-[10px] text-rose-600 font-bold">Stock actual: ${m.stock} ${m.unit} (Mín: ${m.minStock})</p>
-              </div>
-            </div>`;
-        });
-        listDiv.innerHTML = html;
-      }
-      document.getElementById('modalShoppingList').classList.remove('hidden');
-      if(window.lucide) lucide.createIcons();
-    };
-    window.closeShoppingListModal = () => document.getElementById('modalShoppingList').classList.add('hidden');
-    window.sendShoppingListWhatsApp = function() {
-      const toBuy = appState.rawMaterials.filter(m => m.stock <= (m.minStock || 0));
-      if(toBuy.length === 0) { showToast("Nada para comprar", "error"); return; }
-      let msg = `🛒 *Lista de Compras - ${appState.brandName}*\n\nNecesito reponer:\n`;
-      toBuy.forEach(m => { msg += `• ${m.name}\n`; });
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-    };
-
-    /* PEDIDOS KANBAN */
-    window.renderOrdersKanban = function() {
-      const cols = { pending: [], producing: [], delivered: [] };
-      appState.orders.forEach(o => {
-        if(cols[o.status]) cols[o.status].push(o);
-      });
-
-      document.getElementById('countOrderPending').textContent = cols.pending.length;
-      document.getElementById('countOrderProducing').textContent = cols.producing.length;
-      document.getElementById('countOrderDelivered').textContent = cols.delivered.length;
-
-      const cur = appState.currency || '$';
-      const buildCard = (o) => {
-        const itemStr = o.items.map(i => `${i.qty}x ${i.name}`).join(', ');
-        return `
-          <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-400 transition-colors">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-[9px] font-black bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">#${o.id.slice(-4)}</span>
-              <span class="text-[10px] font-bold text-slate-400">${o.date}</span>
-            </div>
-            <h4 class="font-bold text-sm text-slate-800 line-clamp-1">${o.clientName}</h4>
-            <p class="text-[11px] text-slate-500 line-clamp-1 my-1">${itemStr}</p>
-            <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
-              <span class="font-black text-indigo-700 text-sm">${cur}${o.total.toLocaleString()}</span>
-              <select onchange="changeOrderStatus('${o.id}', this.value)" class="text-[10px] bg-slate-50 border border-slate-200 rounded font-bold px-1 py-1 focus:ring-1">
-                <option value="pending" ${o.status==='pending'?'selected':''}>Pendiente</option>
-                <option value="producing" ${o.status==='producing'?'selected':''}>Producción</option>
-                <option value="delivered" ${o.status==='delivered'?'selected':''}>Entregado</option>
-              </select>
-            </div>
-          </div>
-        `;
-      };
-
-      document.getElementById('colOrderPending').innerHTML = cols.pending.map(buildCard).join('');
-      document.getElementById('colOrderProducing').innerHTML = cols.producing.map(buildCard).join('');
-      document.getElementById('colOrderDelivered').innerHTML = cols.delivered.map(buildCard).join('');
-    };
-
-    window.openOrderModal = function() {
-      const cliSelect = document.getElementById('orderClientId');
-      cliSelect.innerHTML = appState.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      if(appState.clients.length === 0) {
-        showToast("Primero debes crear un cliente en la pestaña Clientes", "error");
-        switchTab('clients'); return;
-      }
-      activeOrderItems = [];
-      document.getElementById('orderId').value = '';
-      addOrderItemRow();
-      document.getElementById('modalOrder').classList.remove('hidden');
+    // PEDIDOS
+    window.openOrderModal = () => { 
+      document.getElementById('orderClientId').innerHTML = window.appState.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+      activeOrderItems = []; renderOrderItems();
+      document.getElementById('modalOrder').classList.remove('hidden'); 
     };
     window.closeOrderModal = () => document.getElementById('modalOrder').classList.add('hidden');
-
+    
     window.addOrderItemRow = function() {
-      if(appState.products.length === 0) return;
-      const p = appState.products[0];
-      activeOrderItems.push({ id: p.id, name: p.name, qty: 1 });
+      if(window.appState.products.length===0) return;
+      activeOrderItems.push({ id: window.appState.products[0].id, qty: 1 });
       renderOrderItems();
     };
+    window.updateOrdId = (idx, v) => { activeOrderItems[idx].id = v; renderOrderItems(); };
+    window.updateOrdQty = (idx, v) => { activeOrderItems[idx].qty = parseInt(v)||1; renderOrderItems(); };
+    window.removeOrdItem = (idx) => { activeOrderItems.splice(idx,1); renderOrderItems(); };
 
-    window.renderOrderItems = function() {
-      const container = document.getElementById('orderItemsList');
-      const cur = appState.currency || '$';
-      const type = document.getElementById('orderPriceType').value;
-      let total = 0;
-      
-      container.innerHTML = activeOrderItems.map((item, idx) => {
-        const prod = appState.products.find(x => x.id === item.id);
-        const price = prod ? (type === 'wholesale' ? (prod.wholesalePrice || prod.suggestedPrice) : prod.suggestedPrice) : 0;
-        const sub = item.qty * price;
-        total += sub;
-
-        const options = appState.products.map(p => `<option value="${p.id}" ${p.id===item.id?'selected':''}>${p.name}</option>`).join('');
-        return `
-          <div class="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
-            <select onchange="updateOrderItem(${idx}, 'id', this.value)" class="flex-1 border p-1 rounded bg-slate-50">${options}</select>
-            <input type="number" value="${item.qty}" min="1" oninput="updateOrderItem(${idx}, 'qty', this.value)" class="w-12 border p-1 rounded text-center">
-            <div class="w-20 text-right font-bold">${cur}${sub.toLocaleString()}</div>
-            <button onclick="removeOrderItem(${idx})" class="text-rose-500 px-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-          </div>
-        `;
+    function renderOrderItems() {
+      document.getElementById('orderItemsList').innerHTML = activeOrderItems.map((it, i) => {
+        const opts = window.appState.products.map(p=>`<option value="${p.id}" ${p.id===it.id?'selected':''}>${p.name}</option>`).join('');
+        return `<div class="flex gap-2 text-sm"><select onchange="updateOrdId(${i}, this.value)" class="flex-1 border rounded p-1">${opts}</select><input type="number" value="${it.qty}" oninput="updateOrdQty(${i}, this.value)" class="w-16 border text-center rounded"><button onclick="removeOrdItem(${i})" class="text-rose-500">x</button></div>`;
       }).join('');
-      
-      document.getElementById('orderTotalDisplay').textContent = `${cur}${total.toLocaleString()}`;
-      if(window.lucide) lucide.createIcons();
-    };
-
-    window.updateOrderItem = (idx, field, val) => {
-      if(field==='qty') activeOrderItems[idx].qty = parseInt(val)||1;
-      else activeOrderItems[idx].id = val;
-      renderOrderItems();
-    };
-    window.removeOrderItem = (idx) => { activeOrderItems.splice(idx,1); renderOrderItems(); };
-    window.refreshOrderItemsTotal = () => renderOrderItems();
+    }
 
     window.saveOrder = function() {
-      const clientId = document.getElementById('orderClientId').value;
-      const client = appState.clients.find(c => c.id === clientId);
-      if(!client || activeOrderItems.length === 0) return;
-
-      const type = document.getElementById('orderPriceType').value;
-      const status = document.getElementById('orderStatus').value;
+      const cli = window.appState.clients.find(c=>c.id === document.getElementById('orderClientId').value);
+      if(!cli || activeOrderItems.length===0) return;
       
-      const enrichedItems = activeOrderItems.map(item => {
-        const p = appState.products.find(x => x.id === item.id);
-        const price = type === 'wholesale' ? (p.wholesalePrice || p.suggestedPrice) : p.suggestedPrice;
-        return { id: p.id, name: p.name, qty: item.qty, price };
-      });
-      const total = enrichedItems.reduce((acc, i) => acc + (i.qty * i.price), 0);
-
-      const orderId = document.getElementById('orderId').value || ('ord_' + Date.now());
-      const existingIdx = appState.orders.findIndex(o => o.id === orderId);
-      
-      const orderObj = {
-        id: orderId,
-        clientId: client.id,
-        clientName: client.name,
-        items: enrichedItems,
-        total: total,
-        status: status,
-        date: new Date().toISOString().slice(0, 10)
-      };
-
-      if(existingIdx >= 0) appState.orders[existingIdx] = orderObj;
-      else appState.orders.unshift(orderObj);
-
-      // Si es entregado, descontar stock de los productos terminados
-      if(status === 'delivered') {
-        enrichedItems.forEach(it => {
-          const p = appState.products.find(x => x.id === it.id);
-          if(p) p.stock = Math.max(0, p.stock - it.qty);
-        });
-      }
-
-      saveState(); closeOrderModal(); refreshAllViews(); showToast("Pedido guardado", "success");
-    };
-
-    window.changeOrderStatus = function(id, status) {
-      const o = appState.orders.find(x => x.id === id);
-      if(o) {
-        o.status = status;
-        if(status === 'delivered') {
-          o.items.forEach(it => {
-            const p = appState.products.find(x => x.id === it.id);
-            if(p) p.stock = Math.max(0, p.stock - it.qty);
-          });
-          showToast("Pedido entregado. Stock descontado y venta registrada.", "success");
-        }
-        saveState(); refreshAllViews();
-      }
-    };
-
-    /* METRICAS Y BALANCE REAL */
-    window.updateMetrics = function() {
-      const cur = appState.currency || '$';
-      
-      const totalRawCost = appState.rawMaterials.reduce((acc, m) => acc + (m.stock * m.unitCost), 0);
-      const totalProductsValuation = appState.products.reduce((acc, p) => acc + (p.stock * p.suggestedPrice), 0);
-      
-      const totalExpenses = appState.expenses.reduce((acc, e) => acc + e.amount, 0);
-      // Income only from delivered orders
-      const totalIncome = appState.orders.filter(o => o.status === 'delivered').reduce((acc, o) => acc + o.total, 0);
-      const totalCostOfSold = appState.orders.filter(o => o.status === 'delivered').reduce((acc, o) => {
-        return acc + o.items.reduce((sum, item) => {
-          const p = appState.products.find(x => x.id === item.id);
-          return sum + ((p ? p.unitCost : 0) * item.qty);
-        }, 0);
+      const total = activeOrderItems.reduce((acc, it) => {
+        const p = window.appState.products.find(x=>x.id===it.id);
+        return acc + ((p?p.price:0) * it.qty);
       }, 0);
 
-      const realBalance = totalIncome - totalCostOfSold - totalExpenses;
+      window.appState.orders.push({ id:'ord_'+Date.now(), clientName: cli.name, items: [...activeOrderItems], total, status: document.getElementById('orderStatus').value });
+      window.saveState(); window.closeOrderModal(); refreshAllViews();
+    };
 
-      document.getElementById('metricRealIncome').textContent = `${cur}${Math.round(totalIncome).toLocaleString()}`;
-      document.getElementById('metricRealExpenses').textContent = `${cur}${Math.round(totalExpenses).toLocaleString()}`;
-      document.getElementById('metricRealBalance').textContent = `${cur}${Math.round(realBalance).toLocaleString()}`;
+    window.changeOrderStatus = function(id, val) {
+      const o = window.appState.orders.find(x=>x.id===id);
+      if(o) { o.status = val; window.saveState(); refreshAllViews(); }
+    };
+
+    function renderOrdersList() {
+      const cols = { pending:[], producing:[], delivered:[] };
+      window.appState.orders.forEach(o => cols[o.status].push(o));
       
-      document.getElementById('metricRawValue').textContent = `${cur}${Math.round(totalRawCost).toLocaleString()}`;
-      document.getElementById('metricProductsValue').textContent = `${cur}${Math.round(totalProductsValuation).toLocaleString()}`;
-    };
+      const build = (list) => list.map(o => `<div class="bg-white p-2 rounded border text-sm mb-2"><p class="font-bold">${o.clientName}</p><p class="text-xs text-slate-500 mb-1">$${o.total.toLocaleString()}</p><select onchange="changeOrderStatus('${o.id}', this.value)" class="w-full text-xs p-1 border rounded bg-slate-50"><option value="pending" ${o.status==='pending'?'selected':''}>Pendiente</option><option value="producing" ${o.status==='producing'?'selected':''}>Producción</option><option value="delivered" ${o.status==='delivered'?'selected':''}>Entregado</option></select></div>`).join('');
+      
+      document.getElementById('colOrderPending').innerHTML = build(cols.pending);
+      document.getElementById('colOrderProducing').innerHTML = build(cols.producing);
+      document.getElementById('colOrderDelivered').innerHTML = build(cols.delivered);
+    }
 
-    /* OVERRIDES PARA OTRAS FUNCIONES REUTILIZABLES */
-    window.switchTab = function(tabId) {
-      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-        btn.classList.remove('text-indigo-600', 'font-semibold');
-        btn.classList.add('text-slate-500', 'font-medium');
-      });
-      const target = document.getElementById(`view-${tabId}`);
-      if (target) target.classList.remove('hidden');
-      const navBtn = document.getElementById(`nav-btn-${tabId}`);
-      if (navBtn) {
-        navBtn.classList.remove('text-slate-500', 'font-medium');
-        navBtn.classList.add('text-indigo-600', 'font-semibold');
-      }
-    };
-    
-    window.changeCurrency = function(val) { appState.currency = val; saveState(); refreshAllViews(); showToast(`Moneda: ${val}`); };
-    window.showToast = function(msg, type='info') {
-      const cont = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      const bg = type==='error'?'bg-rose-900':type==='success'?'bg-emerald-900':'bg-slate-900';
-      toast.className = `${bg} text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg mb-2`;
-      toast.textContent = msg;
-      cont.appendChild(toast);
-      setTimeout(() => toast.remove(), 2500);
-    };
-
-    // Funciones del Catálogo simplificadas para evitar errores de render
-    window.renderCatalogView = function() {
-      const container = document.getElementById('catalogGridContainer');
-      const cur = appState.currency || '$';
-      container.innerHTML = '';
-      appState.products.forEach(p => {
-        const photo = p.photo ? `<img src="${p.photo}" class="w-full h-40 object-cover rounded-t-xl">` : `<div class="w-full h-40 bg-slate-100 flex items-center justify-center text-slate-400 rounded-t-xl"><i data-lucide="image" class="w-8 h-8"></i></div>`;
-        const wholesaleHtml = p.wholesalePrice ? `<p class="text-[10px] text-amber-600 font-bold mt-1">Mayorista: ${cur}${p.wholesalePrice.toLocaleString()}</p>` : '';
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-xl border border-slate-200 shadow-sm";
-        card.innerHTML = `
-          ${photo}
-          <div class="p-3">
-            <h3 class="font-bold text-sm text-slate-900">${p.name}</h3>
-            <span class="text-lg font-black text-emerald-600">${cur}${p.suggestedPrice.toLocaleString()}</span>
-            ${wholesaleHtml}
-          </div>
-        `;
-        container.appendChild(card);
-      });
-      if (window.lucide) lucide.createIcons();
-    };
-
-    // Al arrancar
-    window.addEventListener('DOMContentLoaded', () => { initApp(); });
-
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
-```
